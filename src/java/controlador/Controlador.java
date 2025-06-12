@@ -17,8 +17,8 @@ import modelo.Profesional;
 import modelo.ProfesionalDAO;
 import modelo.Paciente;
 import modelo.PacienteDAO;
-import modelo.Venta;
-import modelo.VentaDAO;
+import modelo.Notificacion;
+import modelo.NotificacionDAO;
 
 public class Controlador extends HttpServlet {
 
@@ -31,12 +31,12 @@ public class Controlador extends HttpServlet {
     Acudiente cl = new Acudiente();
     AcudienteDAO cdao = new AcudienteDAO();
 
-    Venta v = new Venta();
-    List<Venta> lista = new ArrayList<>();
+    Notificacion v = new Notificacion();
+    List<Notificacion> lista = new ArrayList<>();
     int item, cod, cant;
     String descripcion, numeroserie;
     double precio, subtotal, total;
-    VentaDAO vdao = new VentaDAO();
+    NotificacionDAO vdao = new NotificacionDAO();
 
     Acudiente c = null;
 
@@ -301,7 +301,7 @@ public class Controlador extends HttpServlet {
                     precio = Double.parseDouble(request.getParameter("precio"));
                     cant = Integer.parseInt(request.getParameter("cant"));
                     subtotal = precio * cant;
-                    v = new Venta();
+                    v = new Notificacion();
                     v.setItem(item);
                     v.setIdproducto(cod);
                     v.setDescripcionP(descripcion);
@@ -340,7 +340,7 @@ public class Controlador extends HttpServlet {
                     //GUARDAR DETALLE VENTAS
                     int idv = Integer.parseInt(vdao.IdVentas());
                     for (int i = 0; i < lista.size(); i++) {
-                        v = new Venta();
+                        v = new Notificacion();
                         v.setId(idv);
                         v.setIdproducto(lista.get(i).getIdproducto());
                         v.setCantidad(lista.get(i).getCantidad());
@@ -357,7 +357,7 @@ public class Controlador extends HttpServlet {
                     break;
 
                 default:
-                    v = new Venta();
+                    v = new Notificacion();
                     lista = new ArrayList<>();
                     item = 0;
                     total = 0.0;
@@ -375,6 +375,21 @@ public class Controlador extends HttpServlet {
                    /* request.getRequestDispatcher("RegistrarNotificacion.jsp").forward(request, response);*/
             }
             request.getRequestDispatcher("RegistrarNotificacion.jsp").forward(request, response);
+        }
+        if (menu.equals("VisionMision") && accion.equals("Ver")) {
+            request.getRequestDispatcher("VisionMision.jsp").forward(request, response);
+        }
+
+        if (menu.equals("Equipo de trabajo") && accion.equals("Ver")) {
+            request.getRequestDispatcher("EquipoTrabajo.jsp").forward(request, response);
+        }
+
+        if (menu.equals("Trayectoria") && accion.equals("Ver")) {
+            request.getRequestDispatcher("Trayectoria.jsp").forward(request, response);
+        }
+
+        if (menu.equals("Contacto") && accion.equals("Ver")) {
+            request.getRequestDispatcher("Contacto.jsp").forward(request, response);
         }
     }
     
