@@ -12,7 +12,7 @@ import config.Conexion;
  *
  * @author User
  */
-public class VentaDAO {
+public class NotificacionDAO {
 
     Connection con;
     Conexion cn = new Conexion();
@@ -52,7 +52,7 @@ public class VentaDAO {
         return idventas;
     }
     
-    public int  guardarVenta(Venta ve){
+    public int  guardarVenta(Notificacion ve){
         String sql = "insert into ventas(IdCliente,IdEmpleado,NumeroSerie,FechaVentas,Monto,Estado)values(?,?,?,?,?,?)";
         try {
            con = cn.Conexion();
@@ -70,7 +70,7 @@ public class VentaDAO {
         return r;
     }
     
-    public int guardarDetalleventa(Venta ve){
+    public int guardarDetalleventa(Notificacion ve){
         String sql = "insert into detalle_ventas(IdVentas,IdProducto,Cantidad,PrecioVenta)values(?,?,?,?)";
         try {
            con = cn.Conexion();

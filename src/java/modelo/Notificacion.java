@@ -9,16 +9,16 @@ package modelo;
  *
  * @author User
  */
-public class Venta {
+public class Notificacion {
     Integer id, item, idcliente, idempleado, idproducto, cantidad;
     String Numserie, fecha, estado;
     String DescripcionP;
     double precio, subtotal, monto;
 
-    public Venta() {
+    public Notificacion() {
     }
 
-    public Venta(Integer id, Integer item, Integer idcliente, Integer idempleado, Integer idproducto, Integer cantidad, String Numserie, String DescripcionP, String fecha, String estado, double precio, double subtotal, double monto) {
+    public Notificacion(Integer id, Integer item, Integer idcliente, Integer idempleado, Integer idproducto, Integer cantidad, String Numserie, String DescripcionP, String fecha, String estado, double precio, double subtotal, double monto) {
         this.id = id;
         this.item = item;
         this.idcliente = idcliente;
