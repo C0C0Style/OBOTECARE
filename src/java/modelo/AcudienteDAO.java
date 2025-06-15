@@ -14,32 +14,10 @@ public class AcudienteDAO {
     PreparedStatement ps;
     ResultSet rs;
     int r;
-    
-    public Acudiente buscar(String dni){
-        Acudiente cl = new Acudiente();
-        String sql = "select * from cliente where Dni="+dni;
-        
-        try {
-            con = cn.Conexion();
-            ps = con.prepareStatement(sql);
-            rs = ps.executeQuery();
 
-            while (rs.next()) {
-                cl.setId(rs.getInt(1));
-                cl.setDni(rs.getString(2));
-                cl.setNombres(rs.getString(3));
-                cl.setDireccion(rs.getString(4));
-                cl.setEstado(rs.getString(5));
-            }
-        } catch (Exception e) {
-        }
-        
-        return cl;
-    }
-
-    public List listar() {
-        String sql = "select * from cliente";
+    public List<Acudiente> listar() {
         List<Acudiente> lista = new ArrayList<>();
+        String sql = "SELECT * FROM acudiente";
 
         try {
             con = cn.Conexion();
@@ -47,81 +25,123 @@ public class AcudienteDAO {
             rs = ps.executeQuery();
 
             while (rs.next()) {
-                Acudiente cl = new Acudiente();
-                cl.setId(rs.getInt(1));
-                cl.setDni(rs.getString(2));
-                cl.setNombres(rs.getString(3));
-                cl.setDireccion(rs.getString(4));
-                cl.setEstado(rs.getString(5));
-                lista.add(cl);
+                Acudiente a = new Acudiente();
+                a.setId(rs.getInt("id"));
+                a.setNombres(rs.getString("nombres"));
+                a.setApellidos(rs.getString("apellidos"));
+                a.setDocumento(rs.getString("documento"));
+                a.setTelefono(rs.getString("telefono"));
+                a.setCorreo(rs.getString("correo"));
+                lista.add(a);
             }
         } catch (Exception e) {
+            e.printStackTrace();
         }
 
         return lista;
     }
 
-    public int agregar(Acudiente cl) {
-        String sql = "insert into cliente(Dni,Nombres,Direccion,Estado) values (?,?,?,?)";
-
+    public Acudiente buscarPorDocumento(String documento) {
+        String sql = "SELECT * FROM acudiente WHERE documento = ?";
         try {
             con = cn.Conexion();
             ps = con.prepareStatement(sql);
-            ps.setString(1, cl.getDni());
-            ps.setString(2, cl.getNombres());
-            ps.setString(3, cl.getDireccion());
-            ps.setString(4, cl.getEstado());
-            ps.executeUpdate();
+            ps.setString(1, documento);
+            rs = ps.executeQuery();
+
+            if (rs.next()) {
+                Acudiente a = new Acudiente();
+                a.setId(rs.getInt("id"));
+                a.setNombres(rs.getString("nombres"));
+                a.setApellidos(rs.getString("apellidos"));
+                a.setDocumento(rs.getString("documento"));
+                a.setTelefono(rs.getString("telefono"));
+                a.setCorreo(rs.getString("correo"));
+                return a;
+            }
+
         } catch (Exception e) {
+            e.printStackTrace();
         }
-        return r;
+
+        return null;
     }
 
     public Acudiente listarId(int id) {
-        Acudiente cli = new Acudiente();
-        String sql = "select * from cliente where IdCliente=" + id;
+        Acudiente a = new Acudiente();
+        String sql = "SELECT * FROM acudiente WHERE id = ?";
 
         try {
             con = cn.Conexion();
             ps = con.prepareStatement(sql);
+            ps.setInt(1, id);
             rs = ps.executeQuery();
 
-            while (rs.next()) {
-                cli.setDni(rs.getString(2));
-                cli.setNombres(rs.getString(3));
-                cli.setDireccion(rs.getString(4));
-                cli.setEstado(rs.getString(5));
+            if (rs.next()) {
+                a.setId(rs.getInt("id"));
+                a.setNombres(rs.getString("nombres"));
+                a.setApellidos(rs.getString("apellidos"));
+                a.setDocumento(rs.getString("documento"));
+                a.setTelefono(rs.getString("telefono"));
+                a.setCorreo(rs.getString("correo"));
             }
         } catch (Exception e) {
+            e.printStackTrace();
         }
 
-        return cli;
+        return a;
     }
 
-    public int actualizar(Acudiente cl) {
-        String sql = "update cliente set Dni=?,Nombres=?,Direccion=?,Estado=? where IdCliente=?";
+    public int agregar(Acudiente a) {
+        String sql = "INSERT INTO acudiente (nombres, apellidos, documento, telefono, correo) VALUES (?, ?, ?, ?, ?)";
 
         try {
             con = cn.Conexion();
             ps = con.prepareStatement(sql);
-            ps.setString(1, cl.getDni());
-            ps.setString(2, cl.getNombres());
-            ps.setString(3, cl.getDireccion());
-            ps.setString(4, cl.getEstado());
-            ps.setInt(5, cl.getId());
-            ps.executeUpdate();
+            ps.setString(1, a.getNombres());
+            ps.setString(2, a.getApellidos());
+            ps.setString(3, a.getDocumento());
+            ps.setString(4, a.getTelefono());
+            ps.setString(5, a.getCorreo());
+            r = ps.executeUpdate();
         } catch (Exception e) {
+            e.printStackTrace();
         }
+
         return r;
     }
 
-    public void delete(int id) {
-        String sql = "delete from cliente where IdCliente=" + id;
+    public int actualizar(Acudiente a) {
+        String sql = "UPDATE acudiente SET nombres=?, apellidos=?, documento=?, telefono=?, correo=? WHERE id=?";
+
         try {
             con = cn.Conexion();
             ps = con.prepareStatement(sql);
+            ps.setString(1, a.getNombres());
+            ps.setString(2, a.getApellidos());
+            ps.setString(3, a.getDocumento());
+            ps.setString(4, a.getTelefono());
+            ps.setString(5, a.getCorreo());
+            ps.setInt(6, a.getId());
+            r = ps.executeUpdate();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return r;
+    }
+
+    public void eliminar(int id) {
+        String sql = "DELETE FROM acudiente WHERE id = ?";
+
+        try {
+            con = cn.Conexion();
+            ps = con.prepareStatement(sql);
+            ps.setInt(1, id);
             ps.executeUpdate();
         } catch (Exception e) {
+            e.printStackTrace();
         }
     }
+    
 }
