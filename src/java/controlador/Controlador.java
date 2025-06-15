@@ -1,5 +1,9 @@
 package controlador;
 
+import java.nio.file.Paths;
+import java.io.File;
+import jakarta.servlet.http.Part;
+import jakarta.servlet.annotation.MultipartConfig;
 import config.GenerarSerie;
 import java.io.IOException;
 import jakarta.servlet.ServletException;
@@ -19,6 +23,11 @@ import modelo.Paciente;
 import modelo.PacienteDAO;
 import modelo.Notificacion;
 import modelo.NotificacionDAO;
+import java.io.PrintWriter;
+
+@MultipartConfig(fileSizeThreshold = 1024 * 1024, // 1MB
+        maxFileSize = 1024 * 1024 * 5, // 5MB
+        maxRequestSize = 1024 * 1024 * 10)   // 10MB
 
 public class Controlador extends HttpServlet {
 
@@ -46,6 +55,22 @@ public class Controlador extends HttpServlet {
         String accion = request.getParameter("accion");
         String menu = request.getParameter("menu");
 
+        if ("BuscarDatosAcudiente".equals(accion)) {
+            String doc = request.getParameter("documento");
+            Acudiente encontrado = cdao.buscarPorDocumento(doc);
+
+            response.setContentType("application/json");
+            PrintWriter out = response.getWriter();
+            if (encontrado != null) {
+                String nombreCompleto = encontrado.getNombres() + " " + encontrado.getApellidos();
+                out.print("{\"nombre\": \"" + nombreCompleto + "\", \"telefono\": \"" + encontrado.getTelefono() + "\"}");
+            } else {
+                out.print("{\"nombre\": \"\", \"telefono\": \"\"}");
+            }
+            out.flush();
+            return;
+        }
+
         if (menu.equals("Principal")) {
             request.getRequestDispatcher("Principal.jsp").forward(request, response);
         }
@@ -57,18 +82,18 @@ public class Controlador extends HttpServlet {
                     request.setAttribute("empleados", listaEmpleados);
                     break;
 
-
                 case "Agregar":
                     String dni = request.getParameter("txtDni");
                     String nom = request.getParameter("txtNombres");
                     String tel = request.getParameter("txtTel");
                     String est;
-                    
-                    if(request.getParameter("txtEstado").equals("Activo"))
+
+                    if (request.getParameter("txtEstado").equals("Activo")) {
                         est = "1";
-                    else
+                    } else {
                         est = "2";
-                        
+                    }
+
                     String user = request.getParameter("txtUsuario");
                     String pass = asegurarClave(request.getParameter("txtPass"));
 
@@ -94,12 +119,13 @@ public class Controlador extends HttpServlet {
                     String nom2 = request.getParameter("txtNombres");
                     String tel2 = request.getParameter("txtTel");
                     String est2;
-                    
-                    if(request.getParameter("txtEstado").equals("Activo"))
+
+                    if (request.getParameter("txtEstado").equals("Activo")) {
                         est2 = "1";
-                    else
+                    } else {
                         est2 = "2";
-                    
+                    }
+
                     String user2 = request.getParameter("txtUsuario");
                     String pass2 = asegurarClave(request.getParameter("txtPass"));
 
@@ -126,66 +152,49 @@ public class Controlador extends HttpServlet {
             request.getRequestDispatcher("Profesional.jsp").forward(request, response);
         }
 
-        if (menu.equals("Cliente")) {
+        if (menu.equals("Acudiente")) {
             switch (accion) {
                 case "Listar":
-                List<Acudiente> listaClientes = cdao.listar();
-                request.setAttribute("clientes", listaClientes);
-                break;
-
+                    List<Acudiente> listaClientes = cdao.listar();
+                    request.setAttribute("clientes", listaClientes);
+                    break;
 
                 case "Agregar":
-                    String dni = request.getParameter("txtDni");
-                    String nom = request.getParameter("txtName");
-                    String dir = request.getParameter("txtDir");
-                    String est;
-                    
-                    if(request.getParameter("txtStt").equals("Activo"))
-                        est = "1";
-                    else
-                        est = "2";
+                    Acudiente nuevo = new Acudiente();
+                    nuevo.setNombres(request.getParameter("txtNombres"));
+                    nuevo.setApellidos(request.getParameter("txtApellidos"));
+                    nuevo.setDocumento(request.getParameter("txtDocumento"));
+                    nuevo.setTelefono(request.getParameter("txtTelefono"));
+                    nuevo.setCorreo(request.getParameter("txtCorreo"));
 
-                    cl.setDni(dni);
-                    cl.setNombres(nom);
-                    cl.setDireccion(dir);
-                    cl.setEstado(est);
-
-                    cdao.agregar(cl);
-                    request.getRequestDispatcher("Controlador?menu=Cliente&accion=Listar").forward(request, response);
+                    cdao.agregar(nuevo);
+                    request.getRequestDispatcher("Controlador?menu=Acudiente&accion=Listar").forward(request, response);
                     break;
 
                 case "Editar":
                     ide = Integer.parseInt(request.getParameter("id"));
-                    Acudiente c = cdao.listarId(ide);
-                    request.setAttribute("cliente", c);
-                    request.getRequestDispatcher("Controlador?menu=Cliente&accion=Listar").forward(request, response);
+                    Acudiente acudienteEdit = cdao.listarId(ide);
+                    request.setAttribute("cliente", acudienteEdit);
+                    request.getRequestDispatcher("Controlador?menu=Acudiente&accion=Listar").forward(request, response);
                     break;
 
                 case "Actualizar":
-                    String dni2 = request.getParameter("txtDni");
-                    String nom2 = request.getParameter("txtName");
-                    String dir2 = request.getParameter("txtDir");
-                    String est2;
-                    
-                    if(request.getParameter("txtStt").equals("Activo"))
-                        est2 = "1";
-                    else
-                        est2 = "2";
+                    Acudiente actualizado = new Acudiente();
+                    actualizado.setId(ide);
+                    actualizado.setNombres(request.getParameter("txtNombres"));
+                    actualizado.setApellidos(request.getParameter("txtApellidos"));
+                    actualizado.setDocumento(request.getParameter("txtDocumento"));
+                    actualizado.setTelefono(request.getParameter("txtTelefono"));
+                    actualizado.setCorreo(request.getParameter("txtCorreo"));
 
-                    cl.setDni(dni2);
-                    cl.setNombres(nom2);
-                    cl.setDireccion(dir2);
-                    cl.setEstado(est2);
-                    cl.setId(ide);
-
-                    cdao.actualizar(cl);
-                    request.getRequestDispatcher("Controlador?menu=Cliente&accion=Listar").forward(request, response);
+                    cdao.actualizar(actualizado);
+                    request.getRequestDispatcher("Controlador?menu=Acudiente&accion=Listar").forward(request, response);
                     break;
 
                 case "Borrar":
                     ide = Integer.parseInt(request.getParameter("id"));
-                    cdao.delete(ide);
-                    request.getRequestDispatcher("Controlador?menu=Cliente&accion=Listar").forward(request, response);
+                    cdao.eliminar(ide);
+                    request.getRequestDispatcher("Controlador?menu=Acudiente&accion=Listar").forward(request, response);
                     break;
 
                 default:
@@ -194,84 +203,131 @@ public class Controlador extends HttpServlet {
             request.getRequestDispatcher("Acudiente.jsp").forward(request, response);
         }
 
-        if (menu.equals("Producto")) {
+        if (menu.equals("Paciente")) {
             switch (accion) {
                 case "Listar":
-                    List<Paciente> listaProductos = pdao.listar();
-                    request.setAttribute("productos", listaProductos);
+                    List<Paciente> listaPacientes = pdao.listar();
+                    request.setAttribute("pacientes", listaPacientes);
                     break;
 
-
                 case "Agregar":
-                    String desc = request.getParameter("txtDes");
-                    String prec = request.getParameter("txtPrecio");
-                    String stock = request.getParameter("txtSto");
-                    String est;
-                    double precio=0.0;
-                    
-                    if(request.getParameter("txtStt").equals("Disponible"))
-                        est = "1";
-                    else
-                        est = "2";
-                    if (prec != null && !prec.trim().isEmpty()) {
-                        try {
-                            precio = Double.parseDouble(prec);
-                        } catch (NumberFormatException e) {
-                            System.out.println("Error: No se pudo convertir el precio a número.");
-                        }
+                    pr = new Paciente(); // ← ← IMPORTANTE: limpiar
+                    pr.setNombres(request.getParameter("txtNombres"));
+                    pr.setApellidos(request.getParameter("txtApellidos"));
+                    pr.setDiagnostico(request.getParameter("txtDiagnostico"));
+                    pr.setNumeroDocumento(request.getParameter("txtNumeroDocumento"));
+                    pr.setFechaNacimiento(request.getParameter("txtFechaNacimiento"));
+                    pr.setDireccion(request.getParameter("txtDireccion"));
+                    pr.setTelefono(request.getParameter("txtTelefono"));
+                    pr.setCorreo(request.getParameter("txtCorreo"));
+                    pr.setEstado(request.getParameter("txtEstado"));
+
+                    Part archivoAgregar = request.getPart("txtHistorial");
+                    String numeroDocAgregar = request.getParameter("txtNumeroDocumento");
+
+                    String nombreOriginalAgregar = Paths.get(archivoAgregar.getSubmittedFileName()).getFileName().toString();
+                    String extensionAgregar = "";
+                    int indexAgregar = nombreOriginalAgregar.lastIndexOf(".");
+                    if (indexAgregar > 0) {
+                        extensionAgregar = nombreOriginalAgregar.substring(indexAgregar);
                     }
 
-                    pr.setPrecio(precio);
-                    pr.setDescripcion(desc);
-                   /* pr.setPrecio(Double.parseDouble(prec));*/
-                    pr.setStock(Integer.parseInt(stock));
-                    pr.setEstado(est);
+                    String nombreArchivoAgregar = numeroDocAgregar + extensionAgregar;
+                    String rutaAgregar = getServletContext().getRealPath("/archivos") + File.separator + nombreArchivoAgregar;
+                    archivoAgregar.write(rutaAgregar);
+                    pr.setHistorial("archivos/" + nombreArchivoAgregar);
 
                     pdao.agregar(pr);
-                    request.getRequestDispatcher("Controlador?menu=Producto&accion=Listar").forward(request, response);
                     break;
 
                 case "Editar":
                     ide = Integer.parseInt(request.getParameter("id"));
-                    Paciente p = pdao.listarId(ide);
-                    request.setAttribute("producto", p);
-                    request.getRequestDispatcher("Controlador?menu=Producto&accion=Listar").forward(request, response);
+                    Paciente paciente = pdao.listarId(ide);
+                    request.setAttribute("paciente", paciente);
                     break;
 
                 case "Actualizar":
-                    String desc2 = request.getParameter("txtDes");
-                    String prec2 = request.getParameter("txtPrecio");
-                    String stock2 = request.getParameter("txtSto");
-                    String est2;
-                    
-                    if(request.getParameter("txtStt").equals("Disponible"))
-                        est2 = "1";
-                    else
-                        est2 = "2";
-
-                    pr.setDescripcion(desc2);
-                    pr.setPrecio(Double.parseDouble(prec2));
-                    pr.setStock(Integer.parseInt(stock2));
-                    pr.setEstado(est2);
                     pr.setId(ide);
+                    pr.setNombres(request.getParameter("txtNombres"));
+                    pr.setApellidos(request.getParameter("txtApellidos"));
+                    pr.setDiagnostico(request.getParameter("txtDiagnostico"));
+                    pr.setNumeroDocumento(request.getParameter("txtNumeroDocumento"));
+                    pr.setFechaNacimiento(request.getParameter("txtFechaNacimiento"));
+                    pr.setDireccion(request.getParameter("txtDireccion"));
+                    pr.setTelefono(request.getParameter("txtTelefono"));
+                    pr.setCorreo(request.getParameter("txtCorreo"));
+                    pr.setEstado(request.getParameter("txtEstado"));
+
+                    Part archivoActualizar = request.getPart("txtHistorial");
+                    String nombreOriginalActualizar = Paths.get(archivoActualizar.getSubmittedFileName()).getFileName().toString();
+                    String numeroDocActualizar = request.getParameter("txtNumeroDocumento");
+
+                    if (nombreOriginalActualizar != null && !nombreOriginalActualizar.isEmpty()) {
+                        String extensionActualizar = "";
+                        int indexActualizar = nombreOriginalActualizar.lastIndexOf(".");
+                        if (indexActualizar > 0) {
+                            extensionActualizar = nombreOriginalActualizar.substring(indexActualizar);
+                        }
+
+                        String nombreArchivoActualizar = numeroDocActualizar + extensionActualizar;
+                        String rutaActualizar = getServletContext().getRealPath("/archivos") + File.separator + nombreArchivoActualizar;
+                        archivoActualizar.write(rutaActualizar);
+                        pr.setHistorial("archivos/" + nombreArchivoActualizar);
+                    } else {
+                        Paciente anterior = pdao.listarId(ide);
+                        pr.setHistorial(anterior.getHistorial());
+                    }
 
                     pdao.actualizar(pr);
-                    request.getRequestDispatcher("Controlador?menu=Producto&accion=Listar").forward(request, response);
                     break;
 
                 case "Borrar":
                     ide = Integer.parseInt(request.getParameter("id"));
-                    pdao.delete(ide);
-                    request.getRequestDispatcher("Controlador?menu=Producto&accion=Listar").forward(request, response);
+                    pdao.eliminar(ide);
                     break;
 
-                default:
-                    throw new AssertionError();
+                case "AsignarAcudiente":
+                    int idPaciente = Integer.parseInt(request.getParameter("idPaciente"));
+                    String documentoAcudiente = request.getParameter("documento");
+                    String parentesco = request.getParameter("parentesco");
+                    String telefonoContacto = request.getParameter("telefonoContacto");
+
+                    Acudiente acudienteAsignado = cdao.buscarPorDocumento(documentoAcudiente);
+
+                    if (acudienteAsignado != null) {
+                        pdao.asignarAcudiente(idPaciente, acudienteAsignado.getId(), parentesco, telefonoContacto);
+                        request.getSession().setAttribute("mensajePaciente", "✅ Acudiente asignado correctamente.");
+                    } else {
+                        request.getSession().setAttribute("errorPaciente", "❌ No se encontró un acudiente con ese número de documento.");
+                    }
+
+                    response.sendRedirect("Controlador?menu=Paciente&accion=Listar");
+                    return;
+
+                case "FormAsignar":
+                    ide = Integer.parseInt(request.getParameter("id"));
+                    Paciente pacienteForm = pdao.listarId(ide);
+                    request.setAttribute("paciente", pacienteForm);
+                    request.getRequestDispatcher("AsignarAcudiente.jsp").forward(request, response);
+                    return;
+                    
+                case "EliminarAcudiente":
+                    int idEliminar = Integer.parseInt(request.getParameter("idPaciente"));
+                    pdao.eliminarAsignacionAcudiente(idEliminar);
+                    request.getSession().setAttribute("mensajePaciente", "✅ Acudiente eliminado correctamente.");
+                    response.sendRedirect("Controlador?menu=Paciente&accion=Listar");
+                    return;
             }
+
+            // Siempre después de cada acción, cargar la lista actualizada
+            List<Paciente> listaPacientes = pdao.listar();
+            request.setAttribute("pacientes", listaPacientes);
+
+            // Redirigir a la vista al final del bloque
             request.getRequestDispatcher("Paciente.jsp").forward(request, response);
         }
 
-        if (menu.equals("NuevaVenta")) {
+        /*if (menu.equals("NuevaVenta")) {
             switch (accion) {
                 case "Search":
                     String dni = request.getParameter("codigocliente");
@@ -373,9 +429,9 @@ public class Controlador extends HttpServlet {
                         request.setAttribute("nserie", numeroserie);
                     }
                    /* request.getRequestDispatcher("RegistrarNotificacion.jsp").forward(request, response);*/
-            }
+ /*}
             request.getRequestDispatcher("RegistrarNotificacion.jsp").forward(request, response);
-        }
+        }*/
         if (menu.equals("VisionMision") && accion.equals("Ver")) {
             request.getRequestDispatcher("VisionMision.jsp").forward(request, response);
         }
@@ -392,7 +448,7 @@ public class Controlador extends HttpServlet {
             request.getRequestDispatcher("Contacto.jsp").forward(request, response);
         }
     }
-    
+
     public String asegurarClave(String textoClaro) {
         String claveSha = null;
 
@@ -415,7 +471,7 @@ public class Controlador extends HttpServlet {
     }
 
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {        
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         processRequest(request, response);
     }
 

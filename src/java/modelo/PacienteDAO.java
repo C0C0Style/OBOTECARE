@@ -15,41 +15,40 @@ public class PacienteDAO {
     ResultSet rs;
     int r;
 
-    public Paciente buscar(int id){
+    public Paciente buscar(int id) {
         Paciente p = new Paciente();
-       String sql = "select * from producto where idproducto =" + id; 
-       
+        String sql = "SELECT * FROM paciente WHERE id = ?";
+
         try {
             con = cn.Conexion();
             ps = con.prepareStatement(sql);
+            ps.setInt(1, id);
             rs = ps.executeQuery();
-            while(rs.next()){
-                p.setId(rs.getInt(1));
-                p.setDescripcion(rs.getString(2));
-                p.setPrecio(rs.getDouble(3));
-                p.setStock(rs.getInt(4));
-                p.setEstado(rs.getString(5));
+
+            if (rs.next()) {
+                p.setId(rs.getInt("id"));
+                p.setNombres(rs.getString("nombres"));
+                p.setApellidos(rs.getString("apellidos"));
+                p.setDiagnostico(rs.getString("diagnostico"));
+                p.setNumeroDocumento(rs.getString("numeroDocumento"));
+                p.setFechaNacimiento(rs.getString("fechaNacimiento"));
+                p.setDireccion(rs.getString("direccion"));
+                p.setTelefono(rs.getString("telefono"));
+                p.setCorreo(rs.getString("correo"));
+                p.setHistorial(rs.getString("historial"));
+                p.setEstado(rs.getString("estado"));
             }
+
         } catch (Exception e) {
+            e.printStackTrace();
         }
+
         return p;
     }
-    
-    public int actualizarstock(int id, int stock){
-        String sql = "update producto set Stock = ? where idproducto = ?";
-        try {
-           con = cn.Conexion();
-            ps = con.prepareStatement(sql);
-            ps.setInt(1, stock);
-            ps.setInt(2, id);
-            ps.executeUpdate();
-        } catch (Exception e) {
-        }
-        return r;
-    }
-    public List listar() {
-        String sql = "select * from producto";
+
+    public List<Paciente> listar() {
         List<Paciente> lista = new ArrayList<>();
+        String sql = "SELECT * FROM paciente";
 
         try {
             con = cn.Conexion();
@@ -57,101 +56,161 @@ public class PacienteDAO {
             rs = ps.executeQuery();
 
             while (rs.next()) {
-                Paciente pd = new Paciente();
-                pd.setId(rs.getInt(1));
-                pd.setDescripcion(rs.getString(2));
-                pd.setPrecio(rs.getDouble(3));
-                pd.setStock(rs.getInt(4));
-                pd.setEstado(rs.getString(5));
-                lista.add(pd);
+                Paciente p = new Paciente();
+                p.setId(rs.getInt("id"));
+                p.setNombres(rs.getString("nombres"));
+                p.setApellidos(rs.getString("apellidos"));
+                p.setDiagnostico(rs.getString("diagnostico"));
+                p.setNumeroDocumento(rs.getString("numeroDocumento"));
+                p.setFechaNacimiento(rs.getString("fechaNacimiento"));
+                p.setDireccion(rs.getString("direccion"));
+                p.setTelefono(rs.getString("telefono"));
+                p.setCorreo(rs.getString("correo"));
+                p.setHistorial(rs.getString("historial"));
+                p.setEstado(rs.getString("estado"));
+                p.setIdAcudiente(rs.getInt("idAcudiente"));
+                p.setParentesco(rs.getString("parentesco"));
+                p.setTelefonoContacto(rs.getString("telefonoContacto"));
+
+                lista.add(p);
             }
+
         } catch (Exception e) {
+            e.printStackTrace();
         }
 
         return lista;
     }
 
-   public int agregar(Paciente pd) {
-    int r = 0; // Inicializa r en 0
-    String sql = "INSERT INTO producto (Nombres, Precio, Stock, Estado) VALUES (?, ?, ?, ?)";
+    public int agregar(Paciente p) {
+        String sql = "INSERT INTO paciente (nombres, apellidos, diagnostico, numeroDocumento, fechaNacimiento, direccion, telefono, correo, historial, estado) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
-    try {
-        con = cn.Conexion();
-        ps = con.prepareStatement(sql);
-        ps.setString(1, pd.getDescripcion()); // ¿El campo en la BD es 'Nombres' y en Java 'Descripcion'?
-        ps.setDouble(2, pd.getPrecio());
-        ps.setInt(3, pd.getStock());
-        ps.setString(4, pd.getEstado());
+        try {
+            con = cn.Conexion();
+            ps = con.prepareStatement(sql);
+            ps.setString(1, p.getNombres());
+            ps.setString(2, p.getApellidos());
+            ps.setString(3, p.getDiagnostico());
+            ps.setString(4, p.getNumeroDocumento());
+            ps.setString(5, p.getFechaNacimiento());
+            ps.setString(6, p.getDireccion());
+            ps.setString(7, p.getTelefono());
+            ps.setString(8, p.getCorreo());
+            ps.setString(9, p.getHistorial());
+            ps.setString(10, p.getEstado());
 
-        r = ps.executeUpdate(); // Guarda cuántas filas fueron afectadas
+            r = ps.executeUpdate();
 
-        if (r > 0) {
-            System.out.println("Producto agregado correctamente.");
-        } else {
-            System.out.println("No se insertó el producto.");
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
-    } catch (Exception e) {
-        System.out.println("Error al agregar producto: " + e.getMessage());
+        return r;
     }
 
-    return r; // Retorna si la inserción fue exitosa o no
-}
+    public int actualizar(Paciente p) {
+        String sql = "UPDATE paciente SET nombres=?, apellidos=?, diagnostico=?, numeroDocumento=?, fechaNacimiento=?, direccion=?, telefono=?, correo=?, historial=?, estado=? WHERE id=?";
 
+        try {
+            con = cn.Conexion();
+            ps = con.prepareStatement(sql);
+            ps.setString(1, p.getNombres());
+            ps.setString(2, p.getApellidos());
+            ps.setString(3, p.getDiagnostico());
+            ps.setString(4, p.getNumeroDocumento());
+            ps.setString(5, p.getFechaNacimiento());
+            ps.setString(6, p.getDireccion());
+            ps.setString(7, p.getTelefono());
+            ps.setString(8, p.getCorreo());
+            ps.setString(9, p.getHistorial());
+            ps.setString(10, p.getEstado());
+            ps.setInt(11, p.getId());
+
+            r = ps.executeUpdate();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return r;
+    }
+
+    public void eliminar(int id) {
+        String sql = "DELETE FROM paciente WHERE id = ?";
+
+        try {
+            con = cn.Conexion();
+            ps = con.prepareStatement(sql);
+            ps.setInt(1, id);
+            ps.executeUpdate();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
     public Paciente listarId(int id) {
-        Paciente prod = new Paciente();
-        String sql = "select * from producto where IdProducto=" + id;
-
+        Paciente p = new Paciente();
+        String sql = "SELECT * FROM paciente WHERE id = ?";
         try {
             con = cn.Conexion();
             ps = con.prepareStatement(sql);
+            ps.setInt(1, id);
             rs = ps.executeQuery();
+            if (rs.next()) {
+                p.setId(rs.getInt("id"));
+                p.setNombres(rs.getString("nombres"));
+                p.setApellidos(rs.getString("apellidos"));
+                p.setDiagnostico(rs.getString("diagnostico"));
+                p.setNumeroDocumento(rs.getString("numerodocumento"));
+                p.setFechaNacimiento(rs.getString("fechanacimiento"));
+                p.setDireccion(rs.getString("direccion"));
+                p.setTelefono(rs.getString("telefono"));
+                p.setCorreo(rs.getString("correo"));
+                p.setEstado(rs.getString("estado"));
+                p.setHistorial(rs.getString("historial"));
+                p.setIdAcudiente(rs.getInt("idAcudiente"));
+                p.setParentesco(rs.getString("parentesco"));
+                p.setTelefonoContacto(rs.getString("telefonoContacto"));
 
-            while (rs.next()) {
-                prod.setId(rs.getInt(1));
-                prod.setDescripcion(rs.getString(2));
-                prod.setPrecio(rs.getDouble(3));
-                prod.setStock(rs.getInt(4));
-                prod.setEstado(rs.getString(5));
+                // Si tiene un idAcudiente válido, se carga
+                if (p.getIdAcudiente() > 0) {
+                    AcudienteDAO adao = new AcudienteDAO();
+                    Acudiente acu = adao.listarId(p.getIdAcudiente());
+                    p.setAcudiente(acu);
+                }
             }
         } catch (Exception e) {
+            e.printStackTrace();
         }
-
-        return prod;
+        return p;
     }
 
-   public int actualizar(Paciente pr) {
-    String sql = "UPDATE producto SET Nombres=?, Precio=?, Stock=?, Estado=? WHERE IdProducto=?";
-    int r = 0;
-
-    try {
-        con = cn.Conexion(); // Asumiendo que cn es tu clase de conexión
-        ps = con.prepareStatement(sql);
-        ps.setString(1, pr.getDescripcion());
-        ps.setDouble(2, pr.getPrecio());
-        ps.setInt(3, pr.getStock());
-        ps.setString(4, pr.getEstado());
-        ps.setInt(5, pr.getId());
-
-        r = ps.executeUpdate(); // Asigna el número de filas afectadas
-
-    } catch (Exception e) {
-        e.printStackTrace(); // Imprime el error en la consola para depuración
-    } 
-            return r; 
-    }
-   
-
-
-
-    public void delete(int id) {
-        String sql = "delete from producto where IdProducto=" + id;
+    public void asignarAcudiente(int idPaciente, int idAcudiente, String parentesco, String telefonoContacto) {
+        String sql = "UPDATE paciente SET idAcudiente = ?, parentesco = ?, telefonoContacto = ? WHERE id = ?";
         try {
             con = cn.Conexion();
             ps = con.prepareStatement(sql);
+            ps.setInt(1, idAcudiente);
+            ps.setString(2, parentesco);
+            ps.setString(3, telefonoContacto);
+            ps.setInt(4, idPaciente);
             ps.executeUpdate();
         } catch (Exception e) {
+            e.printStackTrace();
         }
     }
+
+    public void eliminarAsignacionAcudiente(int idPaciente) {
+        String sql = "UPDATE paciente SET idAcudiente = NULL, parentesco = NULL, telefonoContacto = NULL WHERE id = ?";
+        try {
+            Connection con = cn.Conexion();
+            PreparedStatement ps = con.prepareStatement(sql);
+            ps.setInt(1, idPaciente);
+            ps.executeUpdate();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
 }

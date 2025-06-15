@@ -1,18 +1,22 @@
 package modelo;
 
 public class Acudiente {
-    int id;
-    String dni,nombres,direccion,estado;
+    private int id;
+    private String nombres;
+    private String apellidos;
+    private String documento;
+    private String telefono;
+    private String correo;
 
-    public Acudiente() {
-    }
+    public Acudiente() {}
 
-    public Acudiente(int id, String dni, String nombres, String direccion, String estado) {
+    public Acudiente(int id, String nombres, String apellidos, String documento, String telefono, String correo) {
         this.id = id;
-        this.dni = dni;
         this.nombres = nombres;
-        this.direccion = direccion;
-        this.estado = estado;
+        this.apellidos = apellidos;
+        this.documento = documento;
+        this.telefono = telefono;
+        this.correo = correo;
     }
 
     public int getId() {
@@ -23,14 +27,6 @@ public class Acudiente {
         this.id = id;
     }
 
-    public String getDni() {
-        return dni;
-    }
-
-    public void setDni(String dni) {
-        this.dni = dni;
-    }
-
     public String getNombres() {
         return nombres;
     }
@@ -39,21 +35,35 @@ public class Acudiente {
         this.nombres = nombres;
     }
 
-    public String getDireccion() {
-        return direccion;
+    public String getApellidos() {
+        return apellidos;
     }
 
-    public void setDireccion(String direccion) {
-        this.direccion = direccion;
+    public void setApellidos(String apellidos) {
+        this.apellidos = apellidos;
     }
 
-    public String getEstado() {
-        return estado;
+    public String getDocumento() {
+        return documento;
     }
 
-    public void setEstado(String estado) {
-        this.estado = estado;
+    public void setDocumento(String documento) {
+        this.documento = documento;
     }
-    
-    
+
+    public String getTelefono() {
+        return telefono;
+    }
+
+    public void setTelefono(String telefono) {
+        this.telefono = telefono;
+    }
+
+    public String getCorreo() {
+        return correo;
+    }
+
+    public void setCorreo(String correo) {
+        this.correo = correo;
+    }
 }
