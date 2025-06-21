@@ -1,13 +1,14 @@
 package modelo;
 
-public class Profesional {
+public class Usuario {
     private int id;
     private String dni;
     private String nom;
-    private String tel;
     private String estado;
     private String user;
     private String pass;
+    private String rol;
+    private String correo;
 
     // Getter y Setter para id
     public int getId() {
@@ -36,15 +37,6 @@ public class Profesional {
         this.nom = nom;
     }
 
-    // Getter y Setter para teléfono
-    public String getTel() {
-        return tel;
-    }
-
-    public void setTel(String tel) {
-        this.tel = tel;
-    }
-
     // Getter y Setter para estado
     public String getEstado() {
         return estado;
@@ -70,5 +62,23 @@ public class Profesional {
 
     public void setPass(String pass) {
         this.pass = pass;
+    }
+
+    // Getter y Setter para rol
+    public String getRol() {
+        return rol;
+    }
+
+    public void setRol(String rol) {
+        this.rol = rol;
+    }
+
+    // Getter y Setter para correo
+    public String getCorreo() {
+        return correo;
+    }
+
+    public void setCorreo(String correo) {
+        this.correo = correo;
     }
 }

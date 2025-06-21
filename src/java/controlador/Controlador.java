@@ -4,7 +4,6 @@ import java.nio.file.Paths;
 import java.io.File;
 import jakarta.servlet.http.Part;
 import jakarta.servlet.annotation.MultipartConfig;
-import config.GenerarSerie;
 import java.io.IOException;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
@@ -17,8 +16,8 @@ import java.util.Base64;
 import java.util.List;
 import modelo.Acudiente;
 import modelo.AcudienteDAO;
-import modelo.Profesional;
-import modelo.ProfesionalDAO;
+import modelo.Usuario;
+import modelo.UsuarioDAO;
 import modelo.Paciente;
 import modelo.PacienteDAO;
 import modelo.Notificacion;
@@ -31,8 +30,8 @@ import java.io.PrintWriter;
 
 public class Controlador extends HttpServlet {
 
-    Profesional em = new Profesional();
-    ProfesionalDAO edao = new ProfesionalDAO();
+    Usuario usuario = new Usuario();
+    UsuarioDAO usuarioDAO = new UsuarioDAO();
 
     Paciente pr = new Paciente();
     PacienteDAO pdao = new PacienteDAO();
@@ -46,6 +45,7 @@ public class Controlador extends HttpServlet {
     String descripcion, numeroserie;
     double precio, subtotal, total;
     NotificacionDAO vdao = new NotificacionDAO();
+    
 
     Acudiente c = null;
 
@@ -54,6 +54,7 @@ public class Controlador extends HttpServlet {
     protected void processRequest(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String accion = request.getParameter("accion");
         String menu = request.getParameter("menu");
+        String rutaRaiz = request.getServletContext().getRealPath("/");
 
         if ("BuscarDatosAcudiente".equals(accion)) {
             String doc = request.getParameter("documento");
@@ -75,81 +76,82 @@ public class Controlador extends HttpServlet {
             request.getRequestDispatcher("Principal.jsp").forward(request, response);
         }
 
-        if (menu.equals("Empleado")) {
+        if (menu.equals("Usuario")) {
             switch (accion) {
                 case "Listar":
-                    List<Profesional> listaEmpleados = edao.listar();
-                    request.setAttribute("empleados", listaEmpleados);
+                    List<Usuario> listaUsuarios = usuarioDAO.listar();
+                    request.setAttribute("usuarios", listaUsuarios);
                     break;
 
                 case "Agregar":
                     String dni = request.getParameter("txtDni");
                     String nom = request.getParameter("txtNombres");
-                    String tel = request.getParameter("txtTel");
-                    String est;
-
-                    if (request.getParameter("txtEstado").equals("Activo")) {
-                        est = "1";
-                    } else {
-                        est = "2";
-                    }
-
+                    String rol = request.getParameter("txtRol");
+                    String correo = request.getParameter("txtCorreo");
+                    String est = request.getParameter("txtEstado").equals("Activo") ? "1" : "2";
                     String user = request.getParameter("txtUsuario");
                     String pass = asegurarClave(request.getParameter("txtPass"));
 
-                    em.setDni(dni);
-                    em.setNom(nom);
-                    em.setTel(tel);
-                    em.setEstado(est);
-                    em.setUser(user);
+                    usuario.setDni(dni);
+                    usuario.setNom(nom);
+                    usuario.setRol(rol);
+                    usuario.setCorreo(correo);
+                    usuario.setEstado(est);
+                    usuario.setUser(user);
+                    usuario.setPass(pass);
 
-                    edao.agregar(em);
-                    request.getRequestDispatcher("Controlador?menu=Empleado&accion=Listar").forward(request, response);
+                    usuarioDAO.agregar(usuario);
+                    request.getRequestDispatcher("Controlador?menu=Usuario&accion=Listar").forward(request, response);
                     break;
 
                 case "Editar":
                     ide = Integer.parseInt(request.getParameter("id"));
-                    Profesional e = edao.listarId(ide);
-                    request.setAttribute("empleado", e);
-                    request.getRequestDispatcher("Controlador?menu=Empleado&accion=Listar").forward(request, response);
+                    Usuario u = usuarioDAO.listarId(ide);
+                    request.setAttribute("usuario", u);
+                    request.getRequestDispatcher("Controlador?menu=Usuario&accion=Listar").forward(request, response);
                     break;
 
                 case "Actualizar":
                     String dni2 = request.getParameter("txtDni");
                     String nom2 = request.getParameter("txtNombres");
-                    String tel2 = request.getParameter("txtTel");
-                    String est2;
+                    String rol2 = request.getParameter("txtRol");
+                    String correo2 = request.getParameter("txtCorreo");
+                    String est2 = request.getParameter("txtEstado").equals("Activo") ? "1" : "2";
+                    String user2 = request.getParameter("txtUsuario");
+                    String passRaw = request.getParameter("txtPass");
 
-                    if (request.getParameter("txtEstado").equals("Activo")) {
-                        est2 = "1";
+                    usuario.setDni(dni2);
+                    usuario.setNom(nom2);
+                    usuario.setRol(rol2);
+                    usuario.setCorreo(correo2);
+                    usuario.setEstado(est2);
+                    usuario.setUser(user2);
+                    usuario.setId(ide);
+
+                    // Solo actualizar la contraseña si fue proporcionada
+                    if (passRaw != null && !passRaw.trim().isEmpty()) {
+                        usuario.setPass(asegurarClave(passRaw));
                     } else {
-                        est2 = "2";
+                        // Obtener la contraseña actual desde la base de datos
+                        Usuario existente = usuarioDAO.listarId(ide);
+                        usuario.setPass(existente.getPass());
                     }
 
-                    String user2 = request.getParameter("txtUsuario");
-                    String pass2 = asegurarClave(request.getParameter("txtPass"));
-
-                    em.setDni(dni2);
-                    em.setNom(nom2);
-                    em.setTel(tel2);
-                    em.setEstado(est2);
-                    em.setUser(user2);
-                    em.setId(ide);
-
-                    edao.actualizar(em);
-                    request.getRequestDispatcher("Controlador?menu=Empleado&accion=Listar").forward(request, response);
+                    usuarioDAO.actualizar(usuario);
+                    request.getRequestDispatcher("Controlador?menu=Usuario&accion=Listar").forward(request, response);
                     break;
 
                 case "Borrar":
                     ide = Integer.parseInt(request.getParameter("id"));
-                    edao.delete(ide);
-                    request.getRequestDispatcher("Controlador?menu=Empleado&accion=Listar").forward(request, response);
+                    usuarioDAO.delete(ide);
+                    request.getRequestDispatcher("Controlador?menu=Usuario&accion=Listar").forward(request, response);
                     break;
 
                 default:
                     throw new AssertionError();
             }
-            request.getRequestDispatcher("Profesional.jsp").forward(request, response);
+
+            request.getRequestDispatcher("Usuario.jsp").forward(request, response);
         }
 
         if (menu.equals("Acudiente")) {
@@ -211,7 +213,7 @@ public class Controlador extends HttpServlet {
                     break;
 
                 case "Agregar":
-                    pr = new Paciente(); // ← ← IMPORTANTE: limpiar
+                    pr = new Paciente();
                     pr.setNombres(request.getParameter("txtNombres"));
                     pr.setApellidos(request.getParameter("txtApellidos"));
                     pr.setDiagnostico(request.getParameter("txtDiagnostico"));
@@ -233,8 +235,17 @@ public class Controlador extends HttpServlet {
                     }
 
                     String nombreArchivoAgregar = numeroDocAgregar + extensionAgregar;
-                    String rutaAgregar = getServletContext().getRealPath("/archivos") + File.separator + nombreArchivoAgregar;
-                    archivoAgregar.write(rutaAgregar);
+
+                    // 🛠 Ajuste para evitar que se guarde en /build/web (carpeta temporal)
+                    String rutaDefinitiva = rutaRaiz.replace("build\\web\\", "web\\") + "archivos\\" + nombreArchivoAgregar;
+
+                    // Crear la carpeta si no existe
+                    File carpetaArchivos = new File(rutaRaiz.replace("build\\web\\", "web\\") + "archivos");
+                    if (!carpetaArchivos.exists()) {
+                        carpetaArchivos.mkdirs();
+                    }
+
+                    archivoAgregar.write(rutaDefinitiva);
                     pr.setHistorial("archivos/" + nombreArchivoAgregar);
 
                     pdao.agregar(pr);
@@ -270,8 +281,17 @@ public class Controlador extends HttpServlet {
                         }
 
                         String nombreArchivoActualizar = numeroDocActualizar + extensionActualizar;
-                        String rutaActualizar = getServletContext().getRealPath("/archivos") + File.separator + nombreArchivoActualizar;
-                        archivoActualizar.write(rutaActualizar);
+
+                        // 🛠 Aseguramos ruta persistente fuera de /build/web
+                        String rutaFinal = rutaRaiz.replace("build\\web\\", "web\\") + "archivos\\" + nombreArchivoActualizar;
+                        File carpetaArchivosActualizar = new File(rutaRaiz.replace("build\\web\\", "web\\") + "archivos");
+
+                        // Crear carpeta si no existe
+                        if (!carpetaArchivosActualizar.exists()) {
+                            carpetaArchivosActualizar.mkdirs();
+                        }
+
+                        archivoActualizar.write(rutaFinal);
                         pr.setHistorial("archivos/" + nombreArchivoActualizar);
                     } else {
                         Paciente anterior = pdao.listarId(ide);
@@ -310,7 +330,7 @@ public class Controlador extends HttpServlet {
                     request.setAttribute("paciente", pacienteForm);
                     request.getRequestDispatcher("AsignarAcudiente.jsp").forward(request, response);
                     return;
-                    
+
                 case "EliminarAcudiente":
                     int idEliminar = Integer.parseInt(request.getParameter("idPaciente"));
                     pdao.eliminarAsignacionAcudiente(idEliminar);
@@ -319,119 +339,11 @@ public class Controlador extends HttpServlet {
                     return;
             }
 
-            // Siempre después de cada acción, cargar la lista actualizada
             List<Paciente> listaPacientes = pdao.listar();
             request.setAttribute("pacientes", listaPacientes);
-
-            // Redirigir a la vista al final del bloque
             request.getRequestDispatcher("Paciente.jsp").forward(request, response);
         }
 
-        /*if (menu.equals("NuevaVenta")) {
-            switch (accion) {
-                case "Search":
-                    String dni = request.getParameter("codigocliente");
-                    cl.setDni(dni);
-                    c = cdao.buscar(dni);
-                    request.setAttribute("c", c);
-                    request.setAttribute("nserie", numeroserie);
-                    break;
-
-                case "ProductSearch":
-                    int id = Integer.parseInt(request.getParameter("codigoproducto"));
-                    pr = pdao.listarId(id);
-                    request.setAttribute("c", c);
-                    request.setAttribute("producto", pr);
-                    request.setAttribute("total", total);
-                    request.setAttribute("lista", lista);
-                    request.setAttribute("nserie", numeroserie);
-                    break;
-
-                case "Agregar":
-                    request.setAttribute("nserie", numeroserie);
-                    request.setAttribute("c", c);
-                    total = 0.0;
-                    item = item + 1;
-                    cod = pr.getId();
-                    descripcion = request.getParameter("nomproducto");
-                    precio = Double.parseDouble(request.getParameter("precio"));
-                    cant = Integer.parseInt(request.getParameter("cant"));
-                    subtotal = precio * cant;
-                    v = new Notificacion();
-                    v.setItem(item);
-                    v.setIdproducto(cod);
-                    v.setDescripcionP(descripcion);
-                    v.setPrecio(precio);
-                    v.setCantidad(cant);
-                    v.setSubtotal(subtotal);
-                    lista.add(v);
-
-                    for (int i = 0; i < lista.size(); i++) {
-                        total += lista.get(i).getSubtotal();
-                    }
-                    request.setAttribute("total", total);
-                    request.setAttribute("lista", lista);
-                    break;
-                case "GenerarVenta":
-                    //ACTUALIZAR STOCK
-                    for (int i = 0; i < lista.size(); i++) {
-                        Paciente p = new Paciente();
-                        int cantidad = lista.get(i).getCantidad();
-                        int idproducto = lista.get(i).getIdproducto();
-                        PacienteDAO aO = new PacienteDAO();
-                        p = aO.buscar(idproducto);
-                        int sac = p.getStock() - cantidad;
-                        aO.actualizarstock(idproducto, sac);
-                    }
-                    
-                    //GUARDAR VENTA
-                    v.setIdcliente(c.getId());
-                    v.setIdempleado(1);
-                    v.setNumserie(numeroserie);
-                    v.setFecha("2019-06-14");
-                    v.setMonto(total);
-                    v.setEstado("1");
-                    vdao.guardarVenta(v);
-                    
-                    //GUARDAR DETALLE VENTAS
-                    int idv = Integer.parseInt(vdao.IdVentas());
-                    for (int i = 0; i < lista.size(); i++) {
-                        v = new Notificacion();
-                        v.setId(idv);
-                        v.setIdproducto(lista.get(i).getIdproducto());
-                        v.setCantidad(lista.get(i).getCantidad());
-                        v.setPrecio(lista.get(i).getPrecio());
-                        vdao.guardarDetalleventa(v);
-
-                    }
-
-                    break;
-                case "Borrar":
-                    ide = Integer.parseInt(request.getParameter("id"));
-                    pdao.delete(ide);
-                    request.getRequestDispatcher("Controlador?menu=NuevaVenta&accion=Listar").forward(request, response);
-                    break;
-
-                default:
-                    v = new Notificacion();
-                    lista = new ArrayList<>();
-                    item = 0;
-                    total = 0.0;
-
-                    numeroserie = vdao.GenerarSerie();
-                    if (numeroserie == null) {
-                        numeroserie = "0000001";
-                        request.setAttribute("nserie", numeroserie);
-                    } else {
-                        int incrementar = Integer.parseInt(numeroserie);
-                        GenerarSerie gs = new GenerarSerie();
-                        numeroserie = gs.NumeroSerie(incrementar);
-                        request.setAttribute("nserie", numeroserie);
-                    }
-                   /* request.getRequestDispatcher("RegistrarNotificacion.jsp").forward(request, response);*/
- /*}
-            request.getRequestDispatcher("RegistrarNotificacion.jsp").forward(request, response);
-        }*/
         if (menu.equals("VisionMision") && accion.equals("Ver")) {
             request.getRequestDispatcher("VisionMision.jsp").forward(request, response);
         }

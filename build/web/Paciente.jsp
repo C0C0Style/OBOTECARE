@@ -1,10 +1,10 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
-<%@page import="modelo.Profesional"%>
+<%@page import="modelo.Usuario"%>
 <%
     HttpSession sesion = request.getSession();
-    Profesional emp = (Profesional) sesion.getAttribute("user");
+    Usuario emp = (Usuario) sesion.getAttribute("user");
 
     if (emp != null) {
 %>
