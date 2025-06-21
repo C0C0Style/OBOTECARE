@@ -10,11 +10,13 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import modelo.Usuario;
 import modelo.UsuarioDAO;
+import modelo.Profesional;
+import modelo.ProfesionalDAO;
 
 public class Validar extends HttpServlet {
 
     UsuarioDAO usuarioDAO = new UsuarioDAO();
-    Usuario usuario = new Usuario();
+    ProfesionalDAO profesionalDAO = new ProfesionalDAO();
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -33,9 +35,7 @@ public class Validar extends HttpServlet {
                 manejarSalida(request, response);
                 break;
             default:
-                if (!response.isCommitted()) {
-                    request.getRequestDispatcher("index.jsp").forward(request, response);
-                }
+                request.getRequestDispatcher("index.jsp").forward(request, response);
                 break;
         }
     }
@@ -43,37 +43,39 @@ public class Validar extends HttpServlet {
     private void manejarIngreso(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String user = request.getParameter("txtuser");
         String pass = request.getParameter("txtpass");
-        //String passCifrada = asegurarClave(pass);
+        String rol = request.getParameter("rol"); // Debes tener este campo en el formulario
 
-        usuario = usuarioDAO.validar(user, pass);
+        HttpSession sesion = request.getSession();
+        response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
 
-        System.out.println("Usuario: " + user + " | Contraseña ingresada: " + pass);
-
-        if (usuario.getUser() != null) {
-            response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-            HttpSession sesion = request.getSession();
-            sesion.setAttribute("user", usuario);
-
-            System.out.println("Sesión creada: " + sesion.getId());
-            request.getRequestDispatcher("Controlador?menu=Principal").forward(request, response);
+        if ("profesional".equalsIgnoreCase(rol)) {
+            Profesional profesional = profesionalDAO.validar(user, pass);
+            if (profesional.getUser() != null) {
+                sesion.setAttribute("user", profesional);
+                request.getRequestDispatcher("Controlador?menu=Profesional&accion=Listar").forward(request, response);
+            } else {
+                request.setAttribute("mensaje", "❌ Profesional o contraseña incorrectos.");
+                request.getRequestDispatcher("index.jsp").forward(request, response);
+            }
         } else {
-            request.setAttribute("mensaje", "❌ Usuario o contraseña incorrecta.");
-            request.getRequestDispatcher("index.jsp").forward(request, response);
+            Usuario usuario = usuarioDAO.validar(user, pass);
+            if (usuario.getUser() != null) {
+                sesion.setAttribute("user", usuario);
+                request.getRequestDispatcher("Controlador?menu=Principal").forward(request, response);
+            } else {
+                request.setAttribute("mensaje", "❌ Usuario o contraseña incorrectos.");
+                request.getRequestDispatcher("index.jsp").forward(request, response);
+            }
         }
     }
 
     private void manejarSalida(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        HttpSession sesion = request.getSession();
-        sesion.removeAttribute("user");
-        sesion.invalidate();
-
-        response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-
-        if (!response.isCommitted()) {
-            request.getRequestDispatcher("index.jsp").forward(request, response);
-        } else {
-            System.out.println("Advertencia: La respuesta ya fue comprometida, no se puede reenviar.");
+        HttpSession sesion = request.getSession(false);
+        if (sesion != null) {
+            sesion.invalidate();
         }
+        response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+        request.getRequestDispatcher("index.jsp").forward(request, response);
     }
 
     private String asegurarClave(String textoClaro) {
