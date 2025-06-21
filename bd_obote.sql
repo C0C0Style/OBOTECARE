@@ -46,9 +46,23 @@ INSERT INTO `acudiente` (`id`, `nombres`, `apellidos`, `documento`, `telefono`, 
 -- --------------------------------------------------------
 
 --
+
+-- Tabla profesional actualizada
+CREATE TABLE `profesional` (
+  `IdEmpleado` INT(11) NOT NULL AUTO_INCREMENT,
+  `Dni` VARCHAR(20) NOT NULL,
+  `Nombres` VARCHAR(100) NOT NULL,
+  `Telefono` VARCHAR(20) DEFAULT NULL,
+  `Estado` VARCHAR(10) DEFAULT NULL,
+  `User` VARCHAR(50) NOT NULL,
+  `contraseña` VARCHAR(255) NOT NULL,
+  `IdUsuario` INT(11), -- Relación con usuario
+  PRIMARY KEY (`IdEmpleado`),
+  UNIQUE KEY `user_unique` (`User`),
+  CONSTRAINT `fk_profesional_usuario` FOREIGN KEY (`IdUsuario`) REFERENCES `usuario`(`IdUsuario`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 -- Table structure for table `cliente`
 --
-
 CREATE TABLE `cliente` (
   `IdCliente` int(11) UNSIGNED NOT NULL,
   `Dni` varchar(8) DEFAULT NULL,
@@ -158,6 +172,9 @@ ALTER TABLE `usuario`
 --
 -- AUTO_INCREMENT for dumped tables
 --
+ALTER TABLE `paciente`
+  ADD COLUMN `IdProfesional` INT(11) DEFAULT NULL,
+  ADD CONSTRAINT `fk_paciente_profesional` FOREIGN KEY (`IdProfesional`) REFERENCES `profesional`(`IdEmpleado`);
 
 --
 -- AUTO_INCREMENT for table `acudiente`

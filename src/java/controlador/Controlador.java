@@ -23,12 +23,17 @@ import modelo.PacienteDAO;
 import modelo.Notificacion;
 import modelo.NotificacionDAO;
 import java.io.PrintWriter;
+import modelo.Profesional;
+import modelo.ProfesionalDAO;
 
 @MultipartConfig(fileSizeThreshold = 1024 * 1024, // 1MB
         maxFileSize = 1024 * 1024 * 5, // 5MB
         maxRequestSize = 1024 * 1024 * 10)   // 10MB
 
 public class Controlador extends HttpServlet {
+    
+    Profesional em = new Profesional();
+    ProfesionalDAO edao = new ProfesionalDAO();
 
     Usuario usuario = new Usuario();
     UsuarioDAO usuarioDAO = new UsuarioDAO();
