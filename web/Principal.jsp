@@ -1,9 +1,9 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
-<%@page import="modelo.Profesional"%>
+<%@page import="modelo.Usuario"%>
 
 <%
     HttpSession sesion = request.getSession();
-    Profesional emp = (Profesional) sesion.getAttribute("user");
+    Usuario emp = (Usuario) sesion.getAttribute("user");
 
     if (emp != null) {
 %>
@@ -70,13 +70,13 @@
                             <a class="btn btn-light btn-sm btn-pill ml-2" href="Controlador?menu=Paciente&accion=Listar" target="myFrame">Paciente</a>
                         </li>
                         <li class="nav-item">
-                            <a class="btn btn-light btn-sm btn-pill ml-2" href="Controlador?menu=Empleado&accion=Listar" target="myFrame">Profesional</a>
-                        </li>
-                        <li class="nav-item">
                             <a class="btn btn-light btn-sm btn-pill ml-2" href="Controlador?menu=Acudiente&accion=Listar" target="myFrame">Acudientes</a>
                         </li>
                         <li class="nav-item">
                             <a class="btn btn-light btn-sm btn-pill ml-2" href="Controlador?menu=NuevaVenta&accion=default" target="myFrame">Notificaciones</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="btn btn-light btn-sm btn-pill ml-2" href="Controlador?menu=Usuario&accion=Listar" target="myFrame">Usuarios</a>
                         </li>
                     </ul>
                 </div>
