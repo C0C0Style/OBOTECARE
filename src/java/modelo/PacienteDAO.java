@@ -213,4 +213,28 @@ public class PacienteDAO {
         }
     }
 
+    public List<Paciente> listarPorAcudiente(int idAcudiente) {
+        List<Paciente> lista = new ArrayList<>();
+        String sql = "SELECT * FROM paciente WHERE idAcudiente = ?";
+        try {
+            con = cn.Conexion();
+            ps = con.prepareStatement(sql);
+            ps.setInt(1, idAcudiente);
+            rs = ps.executeQuery();
+            while (rs.next()) {
+                Paciente p = new Paciente();
+                p.setId(rs.getInt("id"));
+                p.setNombres(rs.getString("nombres"));
+                p.setApellidos(rs.getString("apellidos"));
+                p.setNumeroDocumento(rs.getString("numeroDocumento"));
+                p.setTelefono(rs.getString("telefono"));
+                p.setCorreo(rs.getString("correo"));
+                lista.add(p);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return lista;
+    }
+
 }
