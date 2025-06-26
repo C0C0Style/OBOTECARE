@@ -23,6 +23,9 @@ import modelo.PacienteDAO;
 import modelo.Notificacion;
 import modelo.NotificacionDAO;
 import java.io.PrintWriter;
+import util.CorreoUtil;
+import java.util.Date;
+import jakarta.servlet.http.HttpSession;
 
 @MultipartConfig(fileSizeThreshold = 1024 * 1024, // 1MB
         maxFileSize = 1024 * 1024 * 5, // 5MB
@@ -45,7 +48,6 @@ public class Controlador extends HttpServlet {
     String descripcion, numeroserie;
     double precio, subtotal, total;
     NotificacionDAO vdao = new NotificacionDAO();
-    
 
     Acudiente c = null;
 
@@ -199,10 +201,42 @@ public class Controlador extends HttpServlet {
                     request.getRequestDispatcher("Controlador?menu=Acudiente&accion=Listar").forward(request, response);
                     break;
 
+                case "VerPacientes":
+                    int idAcudiente = Integer.parseInt(request.getParameter("id"));
+                    List<Paciente> pacientesAsignados = pdao.listarPorAcudiente(idAcudiente);
+                    Acudiente acudiente = cdao.listarId(idAcudiente);
+                    request.setAttribute("acudiente", acudiente);
+                    request.setAttribute("pacientesAsignados", pacientesAsignados);
+                    request.getRequestDispatcher("PacientesDeAcudiente.jsp").forward(request, response);
+                    return;
                 default:
                     throw new AssertionError();
             }
             request.getRequestDispatcher("Acudiente.jsp").forward(request, response);
+        }
+
+        if (menu.equals("Notificacion") && accion.equals("Programar")) {
+            int idPaciente = Integer.parseInt(request.getParameter("idPaciente"));
+            String mensaje = request.getParameter("mensaje");
+            String fechaHora = request.getParameter("fechaHora"); // formato: yyyy-MM-ddTHH:mm
+
+            String correoDestino = pdao.listarId(idPaciente).getCorreo();
+            Date fechaEnvio = java.sql.Timestamp.valueOf(fechaHora.replace("T", " ") + ":00");
+
+            // Agendar envío por correo (antes de redireccionar)
+            new java.util.Timer().schedule(new java.util.TimerTask() {
+                public void run() {
+                    CorreoUtil.enviarCorreo(correoDestino, "Recordatorio", mensaje);
+                }
+            }, fechaEnvio);
+
+            // Redirige después de agendar
+            HttpSession session = request.getSession();
+            session.setAttribute("mensaje", "✅ Notificación programada.");
+
+            // ❗ Importante: FINALIZA aquí el bloque con return
+            response.sendRedirect("Controlador?menu=Acudiente&accion=Listar");
+            return;
         }
 
         if (menu.equals("Paciente")) {
@@ -359,6 +393,28 @@ public class Controlador extends HttpServlet {
         if (menu.equals("Contacto") && accion.equals("Ver")) {
             request.getRequestDispatcher("Contacto.jsp").forward(request, response);
         }
+
+        if (menu.equals("Notificacion") && accion.equals("Programar")) {
+            int idPaciente = Integer.parseInt(request.getParameter("idPaciente"));
+            String mensaje = request.getParameter("mensaje");
+            String fechaHora = request.getParameter("fechaHora"); // formato: yyyy-MM-ddTHH:mm
+
+            String correoDestino = pdao.listarId(idPaciente).getCorreo();
+            Date fechaEnvio = java.sql.Timestamp.valueOf(fechaHora.replace("T", " ") + ":00");
+
+            // Capturar sesión para redirección inmediata
+            HttpSession session = request.getSession();
+            session.setAttribute("mensaje", "✅ Notificación programada.");
+            response.sendRedirect("Controlador?menu=Acudiente&accion=Listar");
+
+            // Agendar envío por correo
+            new java.util.Timer().schedule(new java.util.TimerTask() {
+                public void run() {
+                    CorreoUtil.enviarCorreo(correoDestino, "Recordatorio", mensaje);
+                }
+            }, fechaEnvio);
+        }
+
     }
 
     public String asegurarClave(String textoClaro) {

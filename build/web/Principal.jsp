@@ -76,6 +76,9 @@
                             <a class="btn btn-light btn-sm btn-pill ml-2" href="Controlador?menu=NuevaVenta&accion=default" target="myFrame">Notificaciones</a>
                         </li>
                         <li class="nav-item">
+                            <a class="btn btn-light btn-sm btn-pill ml-2" href="Controlador?menu=Usuario&accion=Listar" target="myFrame">Profesional</a>
+                        </li>
+                        <li class="nav-item">
                             <a class="btn btn-light btn-sm btn-pill ml-2" href="Controlador?menu=Usuario&accion=Listar" target="myFrame">Usuarios</a>
                         </li>
                     </ul>
