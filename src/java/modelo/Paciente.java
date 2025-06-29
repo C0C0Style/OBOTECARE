@@ -20,6 +20,25 @@ public class Paciente {
 
     // Opcional: para mostrar datos del acudiente asociado
     private Acudiente acudiente;
+    
+    private int idProfesional;
+    private Profesional profesional;
+
+    public int getIdProfesional() {
+        return idProfesional;
+    }
+
+    public void setIdProfesional(int idProfesional) {
+        this.idProfesional = idProfesional;
+    }
+
+    public Profesional getProfesional() {
+        return profesional;
+    }
+
+    public void setProfesional(Profesional profesional) {
+        this.profesional = profesional;
+    }
 
     public Paciente() {
     }

@@ -103,6 +103,10 @@
             <div class="card mb-5">
                 <div class="card-body">
                     <form action="Controlador?menu=Paciente" method="POST" enctype="multipart/form-data">
+                        <c:if test="${not empty paciente.id}">
+                            <input type="hidden" name="id" value="${paciente.id}">
+                        </c:if>
+                        
                         <div class="form-row">
                             <div class="form-group col-md-6">
                                 <label>Nombres</label>
@@ -160,8 +164,13 @@
                             </select>
                         </div>
                         <div class="text-right">
-                            <input type="submit" name="accion" value="Agregar" class="btn btn-info mr-2">
-                            <input type="submit" name="accion" value="Actualizar" class="btn btn-success">
+                            <c:if test="${empty paciente}">
+                                <input type="submit" name="accion" value="Agregar" class="btn btn-info mr-2">
+                            </c:if>
+                            <c:if test="${not empty paciente}">
+                                <input type="submit" name="accion" value="Actualizar" class="btn btn-success mr-2">
+                            </c:if>
+                            <a href="Controlador?menu=Paciente&accion=Listar" class="btn btn-secondary">Cancelar</a>
                         </div>
                     </form>
                 </div>
@@ -180,6 +189,7 @@
                             <th>Teléfono</th>
                             <th>Correo</th>
                             <th>Acudiente</th>
+                            <th>Profesional Asignado</th>
                             <th>Historial Médico</th>
                             <th>Estado</th>
                             <th>Acciones</th>
@@ -204,80 +214,105 @@
                                         </c:otherwise>
                                     </c:choose>
                                 </td>
+                    
+                                <td>
+                                    <c:choose>
+                                        <c:when test="${pr.getProfesional() != null && pr.getProfesional().getId() > 0}">
+                                            <%-- Muestra el nombre del profesional si está asignado --%>
+                                            <span class="badge badge-info">${pr.getProfesional().getNom()}</span>
+                                            <a class="btn btn-danger btn-sm ml-2" 
+                                               href="Controlador?menu=Paciente&accion=DesvincularProfesional&id=${pr.getId()}" 
+                                               onclick="return confirm('¿Estás seguro de que quieres desvincular a ${profAsignado.getNom()} de este paciente?');"
+                                               title="Desvincular Profesional">
+                                                <i class="fas fa-unlink"></i> Desvincular
+                                            </a>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <span class="badge badge-light">Sin Asignar</span>
+                                        </c:otherwise>
+                                    </c:choose>
+                                </td>
                                 <td>
                                     <c:if test="${not empty pr.getHistorial()}">
                                         <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#modalHistorial${pr.getId()}">
                                             Consultar
                                         </button>
                                     </c:if>
+                                    <c:if test="${empty pr.getHistorial()}">
+                                        No hay
+                                    </c:if>
                                 </td>
                                 <td>${pr.getEstado() == '1' ? 'Activo' : 'Inactivo'}</td>
                                 <td>
                                     <div class="d-flex justify-content-center">
                                         <a class="btn btn-info btn-sm mr-2" href="Controlador?menu=Paciente&accion=Editar&id=${pr.getId()}">Editar</a>
-                                        <a class="btn btn-outline-danger btn-sm" href="Controlador?menu=Paciente&accion=Borrar&id=${pr.getId()}">Borrar</a>
+                                        <a class="btn btn-outline-danger btn-sm mr-2" href="Controlador?menu=Paciente&accion=Borrar&id=${pr.getId()}" onclick="return confirm('¿Estás seguro de que quieres eliminar a ${pr.getNombres()} ${pr.getApellidos()}?');">Borrar</a>
+                                        
+                                        <%-- Nuevo botón para Asignar Profesional --%>
+                                        <a class="btn btn-warning btn-sm" href="Controlador?menu=Paciente&accion=FormAsignarProfesional&id=${pr.getId()}" title="Asignar/Desasignar Profesional">Profesional</a>
+                                        
+                                        <%-- El botón de Acudiente, si lo quieres mantener o modificar --%>
                                         <a class="btn btn-secondary btn-sm ml-2" href="Controlador?menu=Paciente&accion=FormAsignar&id=${pr.getId()}">Acudiente</a>
                                     </div>
                                 </td>
                             </tr>
 
-                            <!-- Modal por paciente -->
-                        <div class="modal fade" id="modalHistorial${pr.getId()}" tabindex="-1" role="dialog" aria-labelledby="historialLabel${pr.getId()}" aria-hidden="true">
-                            <div class="modal-dialog modal-fullscreen" role="document">
-                                <div class="modal-content">
-                                    <div class="modal-header bg-primary text-white">
-                                        <h5 class="modal-title" id="historialLabel${pr.getId()}">
-                                            Historial Médico de ${pr.getNombres()} ${pr.getApellidos()}
-                                        </h5>
-                                        <button type="button" class="close text-white" data-dismiss="modal" aria-label="Cerrar">
-                                            <span aria-hidden="true">&times;</span>
-                                        </button>
-                                    </div>
+                            <div class="modal fade" id="modalHistorial${pr.getId()}" tabindex="-1" role="dialog" aria-labelledby="historialLabel${pr.getId()}" aria-hidden="true">
+                                <div class="modal-dialog modal-fullscreen" role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header bg-primary text-white">
+                                            <h5 class="modal-title" id="historialLabel${pr.getId()}">
+                                                Historial Médico de ${pr.getNombres()} ${pr.getApellidos()}
+                                            </h5>
+                                            <button type="button" class="close text-white" data-dismiss="modal" aria-label="Cerrar">
+                                                <span aria-hidden="true">&times;</span>
+                                            </button>
+                                        </div>
 
-                                    <div class="modal-body d-flex justify-content-center align-items-center" style="min-height: 80vh;">
-                                        <c:choose>
-                                            <c:when test="${fn:endsWith(pr.getHistorial(), '.pdf')}">
-                                                <iframe src="${pageContext.request.contextPath}/${pr.getHistorial()}" width="100%" height="100%" style="border: none;"></iframe>
+                                        <div class="modal-body d-flex justify-content-center align-items-center" style="min-height: 80vh;">
+                                            <c:choose>
+                                                <c:when test="${fn:endsWith(pr.getHistorial(), '.pdf')}">
+                                                    <iframe src="${pageContext.request.contextPath}/${pr.getHistorial()}" width="100%" height="100%" style="border: none;"></iframe>
+                                                    </c:when>
+
+                                                <c:when test="${fn:endsWith(pr.getHistorial(), '.jpg') || fn:endsWith(pr.getHistorial(), '.png') || fn:endsWith(pr.getHistorial(), '.jpeg') || fn:endsWith(pr.getHistorial(), '.gif')}">
+                                                    <div class="text-center">
+                                                        <img src="${pageContext.request.contextPath}/${pr.getHistorial()}" class="img-fluid mb-3" alt="Historial médico" style="max-height: 80vh;">
+                                                        <br/>
+                                                        <a href="${pageContext.request.contextPath}/${pr.getHistorial()}" download class="btn btn-outline-primary">
+                                                            Descargar Imagen
+                                                        </a>
+                                                    </div>
                                                 </c:when>
 
-                                            <c:when test="${fn:endsWith(pr.getHistorial(), '.jpg') || fn:endsWith(pr.getHistorial(), '.png') || fn:endsWith(pr.getHistorial(), '.jpeg')}">
-                                                <div class="text-center">
-                                                    <img src="${pageContext.request.contextPath}/${pr.getHistorial()}" class="img-fluid mb-3" alt="Historial médico" style="max-height: 80vh;">
-                                                    <br/>
-                                                    <a href="${pageContext.request.contextPath}/${pr.getHistorial()}" download class="btn btn-outline-primary">
-                                                        Descargar Imagen
-                                                    </a>
-                                                </div>
-                                            </c:when>
+                                                <c:otherwise>
+                                                    <div class="text-center">
+                                                        <p>Tipo de archivo no compatible para vista previa.</p>
+                                                        <a href="${pageContext.request.contextPath}/${pr.getHistorial()}" target="_blank" class="btn btn-primary">Descargar archivo</a>
+                                                    </div>
+                                                </c:otherwise>
+                                            </c:choose>
+                                        </div>
 
-                                            <c:otherwise>
-                                                <div class="text-center">
-                                                    <p>Tipo de archivo no compatible para vista previa.</p>
-                                                    <a href="${pageContext.request.contextPath}/${pr.getHistorial()}" target="_blank" class="btn btn-primary">Descargar archivo</a>
-                                                </div>
-                                            </c:otherwise>
-                                        </c:choose>
-                                    </div>
-
-                                    <div class="modal-footer">
-                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
 
-                    </c:forEach>
+                        </c:forEach>
                     </tbody>
                 </table>
             </div>
         </div>
 
-        <!-- Bootstrap JS -->
         <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
     </body>
 
     <% } else {
+        // Si no hay sesión, redirigir al login
         request.getRequestDispatcher("index.jsp").forward(request, response);
     } %>
 </html>

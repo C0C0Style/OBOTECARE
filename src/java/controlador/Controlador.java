@@ -261,7 +261,8 @@ public class Controlador extends HttpServlet {
         default:
             throw new AssertionError();
     }
-}
+    }
+    
         
         if (menu.equals("Acudiente")) {
             switch (accion) {
@@ -478,6 +479,73 @@ public class Controlador extends HttpServlet {
                     request.getSession().setAttribute("mensajePaciente", "✅ Acudiente eliminado correctamente.");
                     response.sendRedirect("Controlador?menu=Paciente&accion=Listar");
                     return;
+                    
+                case "FormAsignarProfesional":
+                    // 1. Obtener el ID del paciente desde la URL
+                    ide = Integer.parseInt(request.getParameter("id"));
+                    
+
+                    // 2. Obtener el objeto Paciente completo
+                    // Asegúrate de que tu PacienteDAO.listarId(id) retorne el Paciente completo
+                    // Incluyendo su idProfesional actual si lo tiene.
+                    Paciente pacienteSeleccionado = pdao.listarId(ide); 
+
+                    // 3. Obtener la lista de todos los profesionales disponibles
+                    List<Profesional> listaProfesionales = edao.listar(); // Usamos 'edao' para ProfesionalDAO
+
+                    // 4. Establecer los atributos para la página AsignarProfesional.jsp
+                    request.setAttribute("pacienteSeleccionado", pacienteSeleccionado);
+                    request.setAttribute("profesionales", listaProfesionales);
+
+                    // 5. Redirigir a la página de asignación
+                    request.getRequestDispatcher("asignarProfesional.jsp").forward(request, response);
+                    return; // Salir del switch interno
+
+                    case "AsignarProfesional":
+                    // 1. Obtener los IDs del paciente y profesional del formulario
+                    int idPacienteAsignar = Integer.parseInt(request.getParameter("idPaciente"));
+                    int idProfesionalAsignar = Integer.parseInt(request.getParameter("idProfesional"));
+                    
+                    
+                    System.out.println("Debug: ID Paciente a asignar: " + idPacienteAsignar);
+                    System.out.println("Debug: ID Profesional a asignar: " + idProfesionalAsignar);
+                    
+                    System.out.println("Debug: ID Paciente a asignar: " + idPacienteAsignar);
+                    System.out.println("Debug: ID Profesional a asignar: " + idProfesionalAsignar);
+
+                    int filasAfectadas = pdao.asignarProfesional(idPacienteAsignar, idProfesionalAsignar); // <-- Captura el resultado
+
+                    if (filasAfectadas > 0) {
+                        request.getSession().setAttribute("mensajePaciente", "Profesional asignado correctamente.");
+                        System.out.println("Debug: Asignación exitosa, filas afectadas: " + filasAfectadas);
+                    } else {
+                        request.getSession().setAttribute("mensajePaciente", "No se pudo asignar el profesional. Verifique los IDs.");
+                        System.out.println("Debug: Asignación fallida, filas afectadas: " + filasAfectadas);
+    }
+
+                    // 2. Llamar al método asignarProfesional de PacienteDAO
+                    // El método de tu DAO ya maneja si idProfesional es 0 para asignar NULL.
+                    pdao.asignarProfesional(idPacienteAsignar, idProfesionalAsignar); 
+
+                    // Establecer mensaje de éxito
+                    request.getSession().setAttribute("mensajePaciente", "Profesional asignado correctamente.");
+
+                    // 3. Redirigir de vuelta a la lista de pacientes
+                    response.sendRedirect("Controlador?menu=Paciente&accion=Listar");
+                    return; // Salir del switch interno
+
+                case "DesvincularProfesional": // <-- NUEVA ACCIÓN para el botón
+                        int idPacienteDesvincular = Integer.parseInt(request.getParameter("id"));
+                        
+                        // *** LLAMADA A TU MÉTODO EXISTENTE ***
+                        pdao.eliminarAsignacionProfesional(idPacienteDesvincular);
+                        
+                        // Puedes añadir un mensaje de confirmación si lo deseas
+                        request.getSession().setAttribute("mensajePaciente", "Profesional desvinculado correctamente.");
+                        System.out.println("Debug: Profesional desvinculado para Paciente ID: " + idPacienteDesvincular);
+                        
+                        response.sendRedirect("Controlador?menu=Paciente&accion=Listar");
+                        return; // Importante para salir del método   
             }
 
             List<Paciente> listaPacientes = pdao.listar();

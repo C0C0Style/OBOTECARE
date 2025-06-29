@@ -46,12 +46,22 @@ public class PacienteDAO {
         return p;
     }
 
-    public List<Paciente> listar() {
+    // En tu archivo: PacienteDAO.java
+
+public List<Paciente> listar() {
         List<Paciente> lista = new ArrayList<>();
-        String sql = "SELECT * FROM paciente";
+        
+        // Consulta SQL con LEFT JOIN para obtener los datos del profesional
+        // Seleccionamos todas las columnas de paciente (p.*)
+        // y las columnas específicas de profesional que necesitas
+        // Asegúrate de que los nombres de las columnas en prof. coincidan con tu tabla 'profesional'
+        String sql = "SELECT p.*, prof.IdEmpleado, prof.Dni, prof.Nombres AS NombreProfesional, " +
+                     "prof.Telefono, prof.Estado, prof.User, prof.Contraseña, prof.IdUsuario " +
+                     "FROM paciente p " +
+                     "LEFT JOIN profesional prof ON p.idProfesional = prof.IdEmpleado"; //
 
         try {
-            con = cn.Conexion();
+            con = cn.Conexion(); // Asegúrate de que 'cn' está accesible y funcional
             ps = con.prepareStatement(sql);
             rs = ps.executeQuery();
 
@@ -72,13 +82,60 @@ public class PacienteDAO {
                 p.setParentesco(rs.getString("parentesco"));
                 p.setTelefonoContacto(rs.getString("telefonoContacto"));
 
+                // Asigna el ID de la clave foránea idProfesional directamente del paciente
+                p.setIdProfesional(rs.getInt("idProfesional")); 
+
+                // Aquí es donde creamos y asignamos el objeto Profesional
+                // Comprobamos si el LEFT JOIN encontró un profesional (IdEmpleado no es NULL/0)
+                if (rs.getInt("IdEmpleado") > 0) { 
+                Profesional profesional = new Profesional();
+                profesional.setId(rs.getInt("IdEmpleado")); 
+                profesional.setNom(rs.getString("NombreProfesional")); 
+                profesional.setDni(rs.getString("Dni")); 
+                profesional.setTel(rs.getString("Telefono")); 
+                profesional.setEstado(rs.getString("Estado")); 
+                profesional.setUser(rs.getString("User")); 
+                profesional.setPass(rs.getString("Contraseña")); 
+                // Asegúrate de que este setId() es para IdUsuario si es un campo diferente,
+                // o elimínalo si no tienes IdUsuario en Profesional
+   
+
+                    p.setProfesional(profesional); 
+                } else {
+                    p.setProfesional(null); 
+                }
+
+                // --- NUEVAS LÍNEAS DE DEPURACIÓN (CRÍTICAS) ---
+                if (p.getProfesional() != null) {
+                    System.out.println("Debug DAO Listar (Profesional Objeto): Paciente ID: " + p.getId() + 
+                                       ", Profesional Objeto ID: " + p.getProfesional().getId() + // <-- VERIFICA ESTE VALOR
+                                       ", Profesional Objeto Nombre: " + p.getProfesional().getNom());
+                } else {
+                    System.out.println("Debug DAO Listar (Profesional Objeto): Paciente ID: " + p.getId() +
+                                       ", Profesional NO ASIGNADO (objeto es null).");
+                }
+                
+                // --- LÍNEAS DE DEPURACIÓN (Mantén estas líneas, son muy útiles) ---
+                System.out.println("Debug DAO Listar: Paciente ID: " + p.getId() + 
+                                   ", idProfesional FK: " + p.getIdProfesional() +
+                                   ", Objeto Profesional (nombre): " + (p.getProfesional() != null ? p.getProfesional().getNom() : "NULL / No Asignado"));
+                // -----------------------------------------------------------------
+
                 lista.add(p);
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
+            e.printStackTrace(); // Esto imprimirá cualquier error en la consola del servidor
+        } finally {
+            // Asegúrate de cerrar tus recursos de la base de datos
+            try {
+                if (rs != null) rs.close();
+                if (ps != null) ps.close();
+                if (con != null) con.close();
+            } catch (Exception e2) {
+                e2.printStackTrace();
+            }
         }
-
         return lista;
     }
 
@@ -236,5 +293,54 @@ public class PacienteDAO {
         }
         return lista;
     }
+    
+     // Nuevo método para asignar profesional
+    public int asignarProfesional(int idPaciente, int idProfesional) { // <-- Cambia el retorno a 'int'
+    String sql = "UPDATE paciente SET idProfesional = ? WHERE id = ?";
+    int r = 0; // <-- Variable para el resultado
+    try {
+        con = cn.Conexion();
+        ps = con.prepareStatement(sql);
+        if (idProfesional > 0) {
+            ps.setInt(1, idProfesional);
+        } else {
+            ps.setNull(1, java.sql.Types.INTEGER);
+        }
+        ps.setInt(2, idPaciente);
+        r = ps.executeUpdate(); // <-- Guarda el resultado aquí
+        System.out.println("Debug DAO: Filas actualizadas para asignación de profesional: " + r); // <-- Debug
+    } catch (Exception e) {
+        e.printStackTrace(); // Esto enviará el error a los logs del servidor
+    } finally {
+        try {
+            if (ps != null) ps.close();
+            if (con != null) con.close();
+        } catch (Exception e2) {
+            e2.printStackTrace();
+        }
+    }
+    return r; // <-- Retorna el número de filas afectadas
+}
+
+    // Nuevo método para eliminar asignación de profesional
+    public void eliminarAsignacionProfesional(int idPaciente) {
+        String sql = "UPDATE paciente SET idProfesional = NULL WHERE id = ?";
+        try {
+            Connection con = cn.Conexion();
+            PreparedStatement ps = con.prepareStatement(sql);
+            ps.setInt(1, idPaciente);
+            ps.executeUpdate();
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (ps != null) ps.close();
+                if (con != null) con.close();
+            } catch (Exception e2) {
+                e2.printStackTrace();
+            }
+        }
+    }
+
 
 }
