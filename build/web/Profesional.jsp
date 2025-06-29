@@ -94,7 +94,7 @@
     <tbody>
         <%-- Iterar sobre la lista de profesionales --%>
         <c:forEach var="prof" items="${profesionales}">
-            <tr>
+           <tr>
                 <td>${prof.dni}</td>
                 <td>${prof.nom}</td>
                 <td>${prof.tel}</td>
@@ -108,11 +108,12 @@
                     <a href="Controlador?menu=Profesional&accion=Editar&id=${prof.id}" class="btn btn-warning btn-sm">Editar</a>
                     <a href="Controlador?menu=Profesional&accion=Borrar&id=${prof.id}" class="btn btn-danger btn-sm"
                        onclick="return confirm('¿Estás seguro de que quieres eliminar este profesional?');">Eliminar</a>
-                       <div class="form-group">
-                        <a href="Controlador?menu=Profesional&accion=Pacientes" class="btn btn-primary">Ver lista de pacientes</a>
+                    
+                    <%-- ¡EL CAMBIO EN EL BOTÓN AQUÍ! --%>
+                    <div class="mt-2"> <%-- Añadí un margin-top para separar un poco --%>
+                        <a href="Controlador?menu=Profesional&accion=Pacientes&id=${prof.id}" class="btn btn-primary btn-sm">Ver Pacientes Asignados</a>
                     </div>
                 </td>
-                 
             </tr>
         </c:forEach>
     </tbody>

@@ -210,12 +210,22 @@ public class Controlador extends HttpServlet {
             request.getRequestDispatcher("Controlador?menu=Profesional&accion=Listar").forward(request, response);
             break;
             
-        case "Pacientes":
-        PacienteDAO pdao = new PacienteDAO();
-        List<Paciente> listaPacientes = pdao.listar(); // Asegúrate de tener un método listar() en PacienteDAO
-        request.setAttribute("pacientes", listaPacientes);
-        request.getRequestDispatcher("Pacientes.jsp").forward(request, response);
-        break;    
+        case "Pacientes": // <-- MODIFICACIÓN DE ESTE CASE
+                            // Obtener el ID del profesional de la URL
+                            int idProfesional = Integer.parseInt(request.getParameter("id"));
+                            
+                            // Obtener los pacientes ASIGNADOS a este profesional
+                            List<Paciente> listaPacientesAsignados = pdao.listarPacientesPorProfesional(idProfesional); 
+                            
+                            // También podríamos querer pasar el objeto profesional a la JSP
+                            // para mostrar su nombre en el encabezado de la lista de pacientes.
+                            Profesional profActual = edao.listarId(idProfesional); // Asumiendo edao es ProfesionalDAO
+                            
+                            request.setAttribute("pacientes", listaPacientesAsignados);
+                            request.setAttribute("profesionalActual", profActual); // Para mostrar "Pacientes de [Nombre Profesional]"
+
+                            request.getRequestDispatcher("Pacientes.jsp").forward(request, response); // <-- ¡Nueva JSP!
+                            return; 
         
 
         case "Actualizar":

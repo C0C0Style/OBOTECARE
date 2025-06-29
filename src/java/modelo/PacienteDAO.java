@@ -269,6 +269,71 @@ public List<Paciente> listar() {
             e.printStackTrace();
         }
     }
+     public List<Paciente> listarPacientesPorProfesional(int idProfesional) {
+        List<Paciente> lista = new ArrayList<>();
+        String sql = "SELECT p.*, prof.IdEmpleado, prof.Dni, prof.Nombres AS NombreProfesional, " +
+                     "prof.Telefono, prof.Estado, prof.User, prof.Contraseña, prof.IdUsuario " +
+                     "FROM paciente p " +
+                     "LEFT JOIN profesional prof ON p.idProfesional = prof.IdEmpleado " +
+                     "WHERE p.idProfesional = ?"; // <-- ¡Aquí está el filtro!
+
+        try {
+            con = cn.Conexion();
+            ps = con.prepareStatement(sql);
+            ps.setInt(1, idProfesional); // Setea el ID del profesional en la consulta
+            rs = ps.executeQuery();
+
+            while (rs.next()) {
+                Paciente p = new Paciente();
+                p.setId(rs.getInt("id"));
+                p.setNombres(rs.getString("nombres"));
+                p.setApellidos(rs.getString("apellidos"));
+                p.setDiagnostico(rs.getString("diagnostico"));
+                p.setNumeroDocumento(rs.getString("numeroDocumento"));
+                p.setFechaNacimiento(rs.getString("fechaNacimiento"));
+                p.setDireccion(rs.getString("direccion"));
+                p.setTelefono(rs.getString("telefono"));
+                p.setCorreo(rs.getString("correo"));
+                p.setHistorial(rs.getString("historial"));
+                p.setEstado(rs.getString("estado"));
+                p.setIdAcudiente(rs.getInt("idAcudiente"));
+                p.setParentesco(rs.getString("parentesco"));
+                p.setTelefonoContacto(rs.getString("telefonoContacto"));
+                p.setIdProfesional(rs.getInt("idProfesional")); 
+
+                // Lógica para asignar el objeto Profesional (igual que en listar())
+                if (rs.getInt("IdEmpleado") > 0) { 
+                    Profesional profesional = new Profesional();
+                    profesional.setId(rs.getInt("IdEmpleado")); 
+                    profesional.setNom(rs.getString("NombreProfesional")); 
+                    profesional.setDni(rs.getString("Dni")); 
+                    profesional.setTel(rs.getString("Telefono")); 
+                    profesional.setEstado(rs.getString("Estado")); 
+                    profesional.setUser(rs.getString("User")); 
+                    profesional.setPass(rs.getString("Contraseña")); 
+                    
+
+                    p.setProfesional(profesional); 
+                } else {
+                    p.setProfesional(null); 
+                }
+                
+                lista.add(p);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (rs != null) rs.close();
+                if (ps != null) ps.close();
+                if (con != null) con.close();
+            } catch (Exception e2) {
+                e2.printStackTrace();
+            }
+        }
+        return lista;
+    }
 
     public List<Paciente> listarPorAcudiente(int idAcudiente) {
         List<Paciente> lista = new ArrayList<>();
