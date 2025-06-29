@@ -26,12 +26,17 @@ import java.io.PrintWriter;
 import util.CorreoUtil;
 import java.util.Date;
 import jakarta.servlet.http.HttpSession;
+import modelo.Profesional;
+import modelo.ProfesionalDAO;
 
 @MultipartConfig(fileSizeThreshold = 1024 * 1024, // 1MB
         maxFileSize = 1024 * 1024 * 5, // 5MB
         maxRequestSize = 1024 * 1024 * 10)   // 10MB
 
 public class Controlador extends HttpServlet {
+    
+    Profesional em = new Profesional();
+    ProfesionalDAO edao = new ProfesionalDAO();
 
     Usuario usuario = new Usuario();
     UsuarioDAO usuarioDAO = new UsuarioDAO();
@@ -155,7 +160,109 @@ public class Controlador extends HttpServlet {
 
             request.getRequestDispatcher("Usuario.jsp").forward(request, response);
         }
+        if (menu.equals("Profesional")) {
+    switch (accion) {
+        case "Listar":
+            List<Profesional> listaEmpleados = edao.listar();
+            System.out.println("Cantidad de profesionales: " + listaEmpleados.size());
+            request.setAttribute("profesionales", listaEmpleados);
+            request.getRequestDispatcher("Profesional.jsp").forward(request, response);
+            break;
 
+        case "Agregar":
+            String dni = request.getParameter("txtDni");
+            String nom = request.getParameter("txtNombres");
+            String tel = request.getParameter("txtTel");
+            String est = request.getParameter("txtEstado"); // Debe ser "1" o "2"
+            String user = request.getParameter("txtUsuario");
+            String pass = asegurarClave(request.getParameter("txtPass")); // Aplicar hash
+
+            // Validación básica
+            if (dni == null || dni.isEmpty() || nom == null || nom.isEmpty() || 
+                est == null || user == null || user.isEmpty() || pass == null) {
+                request.setAttribute("error", "Faltan campos obligatorios");
+                request.getRequestDispatcher("Profesional.jsp").forward(request, response);
+                return;
+            }
+
+            em.setDni(dni);
+            em.setNom(nom);
+            em.setTel(tel);
+            em.setEstado(est);
+            em.setUser(user);
+            em.setPass(pass);
+
+            int resultado = edao.agregar(em);
+
+            if (resultado > 0) {
+                request.setAttribute("mensaje", "Profesional agregado correctamente");
+            } else {
+                request.setAttribute("error", "No se pudo agregar el profesional");
+            }
+
+            request.getRequestDispatcher("Controlador?menu=Profesional&accion=Listar").forward(request, response);
+            break;
+
+        case "Editar":
+            ide = Integer.parseInt(request.getParameter("id"));
+            Profesional e = edao.listarId(ide);
+            request.setAttribute("empleado", e);
+            request.getRequestDispatcher("Controlador?menu=Profesional&accion=Listar").forward(request, response);
+            break;
+            
+        case "Pacientes":
+        PacienteDAO pdao = new PacienteDAO();
+        List<Paciente> listaPacientes = pdao.listar(); // Asegúrate de tener un método listar() en PacienteDAO
+        request.setAttribute("pacientes", listaPacientes);
+        request.getRequestDispatcher("Pacientes.jsp").forward(request, response);
+        break;    
+        
+
+        case "Actualizar":
+            String dni2 = request.getParameter("txtDni");
+            String nom2 = request.getParameter("txtNombres");
+            String tel2 = request.getParameter("txtTel");
+
+            String est2;
+            if (request.getParameter("txtEstado").equals("Activo")) {
+                est2 = "1";
+            } else {
+                est2 = "2";
+            }
+
+            String user2 = request.getParameter("txtUsuario");
+            String nuevaPass = request.getParameter("txtPass");
+
+            em.setDni(dni2);
+            em.setNom(nom2);
+            em.setTel(tel2);
+            em.setEstado(est2);
+            em.setUser(user2);
+            em.setId(ide);
+
+            // Solo actualiza la contraseña si se ha ingresado una nueva
+            if (nuevaPass != null && !nuevaPass.isEmpty()) {
+                em.setPass(asegurarClave(nuevaPass));
+            } else {
+                em.setPass(null); // Para que el DAO sepa que no debe actualizarla
+            }
+
+            edao.actualizar(em);
+
+            request.getRequestDispatcher("Controlador?menu=Profesional&accion=Listar").forward(request, response);
+            break;
+
+        case "Borrar":
+            ide = Integer.parseInt(request.getParameter("id"));
+            edao.delete(ide);
+            request.getRequestDispatcher("Controlador?menu=Profesional&accion=Listar").forward(request, response);
+            break;
+
+        default:
+            throw new AssertionError();
+    }
+}
+        
         if (menu.equals("Acudiente")) {
             switch (accion) {
                 case "Listar":
