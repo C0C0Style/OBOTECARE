@@ -3,17 +3,17 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/C:/Users/Administrador/Desktop/Repositorio%20Analisis/OBOTECARE/OBOTECARE/src/java/modelo/Paciente.java</file>
-            <file>file:/C:/Users/Administrador/Desktop/Repositorio%20Analisis/OBOTECARE/OBOTECARE/web/AsignarAcudiente.jsp</file>
+            <file>file:/C:/Users/Administrador/Desktop/Repositorio%20Analisis/OBOTECARE/OBOTECARE/web/Profesional.jsp</file>
+            <file>file:/C:/Users/Administrador/Desktop/Repositorio%20Analisis/OBOTECARE/OBOTECARE/src/java/modelo/PacienteDAO.java</file>
             <file>file:/C:/Users/Administrador/Desktop/Repositorio%20Analisis/OBOTECARE/OBOTECARE/web/Principal.jsp</file>
-            <file>file:/C:/Users/Administrador/Desktop/Repositorio%20Analisis/OBOTECARE/OBOTECARE/web/RegistrarNotificacion.jsp</file>
             <file>file:/C:/Users/Administrador/Desktop/Repositorio%20Analisis/OBOTECARE/OBOTECARE/src/java/controlador/Controlador.java</file>
-            <file>file:/C:/Users/Administrador/Desktop/Repositorio%20Analisis/OBOTECARE/OBOTECARE/src/java/config/Conexion.java</file>
+            <file>file:/C:/Users/Administrador/Desktop/Repositorio%20Analisis/OBOTECARE/OBOTECARE/web/RecordatorioForm.jsp</file>
+            <file>file:/C:/Users/Administrador/Desktop/Repositorio%20Analisis/OBOTECARE/OBOTECARE/src/java/modelo/Recordatorio.java</file>
+            <file>file:/C:/Users/Administrador/Desktop/Repositorio%20Analisis/OBOTECARE/OBOTECARE/web/RecordatoriosPaciente.jsp</file>
             <file>file:/C:/Users/Administrador/Desktop/Repositorio%20Analisis/OBOTECARE/OBOTECARE/web/Paciente.jsp</file>
-            <file>file:/C:/Users/Administrador/Desktop/Repositorio%20Analisis/OBOTECARE/OBOTECARE/web/Usuario.jsp</file>
-            <file>file:/C:/Users/Administrador/Desktop/Repositorio%20Analisis/OBOTECARE/OBOTECARE/web/Contacto.jsp</file>
+            <file>file:/C:/Users/Administrador/Desktop/Repositorio%20Analisis/OBOTECARE/OBOTECARE/src/java/modelo/RecordatorioDAO.java</file>
+            <file>file:/C:/Users/Administrador/Desktop/Repositorio%20Analisis/OBOTECARE/OBOTECARE/web/RecordatoriosGeneral.jsp</file>
             <file>file:/C:/Users/Administrador/Desktop/Repositorio%20Analisis/OBOTECARE/OBOTECARE/web/index.jsp</file>
-            <file>file:/C:/Users/Administrador/Desktop/Repositorio%20Analisis/OBOTECARE/OBOTECARE/web/PacientesDeAcudiente.jsp</file>
         </group>
     </open-files>
 </project-private>

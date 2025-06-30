@@ -19,10 +19,10 @@
                     <th>Nombre</th>
                     <th>Apellidos</th>
                     <th>DNI</th>
-                    <th>Teléfono</th>
+                    <th>Telefono</th>
                     <th>Correo</th>
-                    <th>Dirección</th>
-                    <th>Diagnóstico</th>
+                    <th>Direccion</th>
+                    <th>Diagnostico</th>
                     <th>Estado</th> <%-- Cambié "Acudiente" por "Estado" ya que el campo es ${paciente.estado} --%>
                 </tr>
             </thead>
