@@ -73,7 +73,7 @@
                             <a class="btn btn-light btn-sm btn-pill ml-2" href="Controlador?menu=Acudiente&accion=Listar" target="myFrame">Acudientes</a>
                         </li>
                         <li class="nav-item">
-                            <a class="btn btn-light btn-sm btn-pill ml-2" href="Controlador?menu=NuevaVenta&accion=default" target="myFrame">Notificaciones</a>
+                            <a class="btn btn-light btn-sm btn-pill ml-2" href="Controlador?menu=Notificaciones&accion=Listar" target="myFrame">Notificaciones</a>
                         </li>
                         <li class="nav-item">
                             <a class="btn btn-light btn-sm btn-pill ml-2" href="Controlador?menu=Profesional&accion=Listar" target="myFrame">Profesional</a>

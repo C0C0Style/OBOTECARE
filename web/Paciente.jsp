@@ -253,6 +253,8 @@
                                         
                                         <%-- El botón de Acudiente, si lo quieres mantener o modificar --%>
                                         <a class="btn btn-secondary btn-sm ml-2" href="Controlador?menu=Paciente&accion=FormAsignar&id=${pr.getId()}">Acudiente</a>
+                                         <a href="Controlador?menu=Notificaciones&accion=FormAgregar&idPaciente=${pr.getId()}" class="btn btn-success btn-sm mt-1">Añadir Recordatorio</a>
+                                        <a href="Controlador?menu=Notificaciones&accion=ListarPorPaciente&idPaciente=${pr.getId()}" class="btn btn-info btn-sm mt-1">Ver Recordatorios</a>
                                     </div>
                                 </td>
                             </tr>

@@ -26,14 +26,21 @@ import java.io.PrintWriter;
 import util.CorreoUtil;
 import java.util.Date;
 import jakarta.servlet.http.HttpSession;
+import java.time.LocalDateTime;
 import modelo.Profesional;
 import modelo.ProfesionalDAO;
+import modelo.Recordatorio;
+import modelo.RecordatorioDAO;
 
 @MultipartConfig(fileSizeThreshold = 1024 * 1024, // 1MB
         maxFileSize = 1024 * 1024 * 5, // 5MB
         maxRequestSize = 1024 * 1024 * 10)   // 10MB
 
 public class Controlador extends HttpServlet {
+    
+    
+    Recordatorio rec = new Recordatorio();
+    RecordatorioDAO recao = new RecordatorioDAO();
     
     Profesional em = new Profesional();
     ProfesionalDAO edao = new ProfesionalDAO();
@@ -57,6 +64,7 @@ public class Controlador extends HttpServlet {
     Acudiente c = null;
 
     int ide;
+    int idrec;
 
     protected void processRequest(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String accion = request.getParameter("accion");
@@ -82,7 +90,14 @@ public class Controlador extends HttpServlet {
         if (menu.equals("Principal")) {
             request.getRequestDispatcher("Principal.jsp").forward(request, response);
         }
+        
+        
 
+            
+        
+           
+            
+            
         if (menu.equals("Usuario")) {
             switch (accion) {
                 case "Listar":
@@ -210,8 +225,8 @@ public class Controlador extends HttpServlet {
             request.getRequestDispatcher("Controlador?menu=Profesional&accion=Listar").forward(request, response);
             break;
             
-        case "Pacientes": // <-- MODIFICACIÓN DE ESTE CASE
-                            // Obtener el ID del profesional de la URL
+        case "Pacientes": 
+                           
                             int idProfesional = Integer.parseInt(request.getParameter("id"));
                             
                             // Obtener los pacientes ASIGNADOS a este profesional
@@ -600,8 +615,179 @@ public class Controlador extends HttpServlet {
             }, fechaEnvio);
         }
 
-    }
+     
+    
+    if (menu.equals("Notificaciones")) {
+            // Obtener el usuario logueado de la sesión
+            HttpSession session = request.getSession();
+            Usuario usuarioLogueado = (Usuario) session.getAttribute("user"); // Esto es un Usuario, como quieres mantenerlo
 
+            // Variable para almacenar el ID del profesional creador
+            int idProfesionalCreador = 0; // Por defecto a 0 o algún valor que indique "no asignado"
+
+            // Si hay un usuario logueado y su rol es "Profesional"
+            if (usuarioLogueado != null && "Profesional".equals(usuarioLogueado.getRol())) {
+                // *** Aquí es donde necesitamos obtener el ID del Profesional.
+                // Opción A: Si el ID del Usuario y el ID del Profesional son el mismo
+                idProfesionalCreador = usuarioLogueado.getId();
+
+             
+                Profesional profesionalAsociado = edao.listarId(usuarioLogueado.getId()); // Necesitarías este método en ProfesionalDAO
+                if (profesionalAsociado != null) {
+                    idProfesionalCreador = profesionalAsociado.getId();
+                } else {
+                    // Si el usuario tiene rol Profesional pero no se encuentra su perfil de Profesional
+                    // Esto es una situación excepcional, podrías loggearla o redirigir
+                    System.err.println("Advertencia: Usuario con rol 'Profesional' no tiene perfil de Profesional asociado. Usuario ID: " + usuarioLogueado.getId());
+                }
+            }
+            // Si el usuario logueado NO es un profesional o no está logueado, idProfesionalCreador seguirá siendo 0.
+
+            switch (accion) {
+                case "Listar": // 3. Poder ver la lista de recordatorios (todos)
+                    List<Recordatorio> listaRecordatorios = recao.listar();
+                    request.setAttribute("recordatorios", listaRecordatorios);
+                    request.getRequestDispatcher("RecordatoriosGeneral.jsp").forward(request, response);
+                    break;
+
+                case "ListarPorPaciente": // Listar recordatorios de un paciente en particular
+                    int idPacienteListar = Integer.parseInt(request.getParameter("idPaciente"));
+                    List<Recordatorio> recordatoriosPaciente = recao.listarPorPaciente(idPacienteListar);
+                    Paciente pacienteParaRecordatorios = pdao.listarId(idPacienteListar);
+
+                    request.setAttribute("recordatorios", recordatoriosPaciente);
+                    request.setAttribute("pacienteActual", pacienteParaRecordatorios);
+                    request.getRequestDispatcher("RecordatoriosPaciente.jsp").forward(request, response);
+                    break;
+
+                case "FormAgregar": // Muestra el formulario para crear un nuevo recordatorio (1. Crear)
+                    int idPacienteForm = 0;
+                    if (request.getParameter("idPaciente") != null && !request.getParameter("idPaciente").isEmpty()) {
+                        idPacienteForm = Integer.parseInt(request.getParameter("idPaciente"));
+                        Paciente pacienteF = pdao.listarId(idPacienteForm);
+                        request.setAttribute("pacienteSeleccionado", pacienteF);
+                    }
+
+                    // Pasar el idProfesionalCreador obtenido al request
+                    request.setAttribute("idProfesionalCreador", idProfesionalCreador);
+                    request.setAttribute("listaPacientes", pdao.listar()); // Necesario para el dropdown en el form
+                    request.setAttribute("listaProfesionales", edao.listar()); // Necesario para el dropdown en el form
+
+                    request.getRequestDispatcher("RecordatorioForm.jsp").forward(request, response);
+                    break;
+
+                case "Agregar": // Procesa la adición de un nuevo recordatorio (1. Crear)
+                    int idPac = Integer.parseInt(request.getParameter("idPaciente"));
+                    String fechaHoraStr = request.getParameter("txtFechaHora");
+                    String desc = request.getParameter("txtDescripcion");
+                    String estado = "Pendiente";
+                    // Obtener idProfCreador del parámetro oculto del formulario o del calculado previamente
+                    int idProfCreadorForm = 0;
+                    if (request.getParameter("idProfesionalCreador") != null && !request.getParameter("idProfesionalCreador").isEmpty()) {
+                         idProfCreadorForm = Integer.parseInt(request.getParameter("idProfesionalCreador"));
+                    } else {
+                        // Si no viene del form (por ejemplo, si el campo oculto no se usó), usar el calculado
+                        idProfCreadorForm = idProfesionalCreador;
+                    }
+
+                    LocalDateTime fechaHora = LocalDateTime.parse(fechaHoraStr); // Conversión sin try-catch
+
+                    Recordatorio nuevoRecordatorio = new Recordatorio();
+                    nuevoRecordatorio.setIdPaciente(idPac);
+                    nuevoRecordatorio.setFechaRecordatorio(fechaHora);
+                    nuevoRecordatorio.setDescripcion(desc);
+                    nuevoRecordatorio.setEstado(estado);
+                    nuevoRecordatorio.setIdProfesionalCreador(idProfCreadorForm); // Usar el ID obtenido/calculado
+
+                    int res = recao.agregar(nuevoRecordatorio);
+
+                    if (res > 0) {
+                        request.getSession().setAttribute("mensaje", "Recordatorio agregado correctamente.");
+                    } else {
+                        request.getSession().setAttribute("error", "No se pudo agregar el recordatorio.");
+                    }
+                    response.sendRedirect("Controlador?menu=Notificaciones&accion=ListarPorPaciente&idPaciente=" + idPac);
+                    return; // Importante para detener la ejecución y redirigir
+
+                case "Editar": // Muestra el formulario para editar un recordatorio (2. Editar)
+                    idrec = Integer.parseInt(request.getParameter("id")); // idrec se usa aquí
+                    Recordatorio recordatorioAEditar = recao.listarId(idrec);
+                    request.setAttribute("recordatorio", recordatorioAEditar);
+
+                    request.setAttribute("listaPacientes", pdao.listar());
+                    request.setAttribute("listaProfesionales", edao.listar());
+
+                    // Asegurarse de que el ID del profesional creador también esté disponible si se necesita para la edición
+                    request.setAttribute("idProfesionalCreador", idProfesionalCreador);
+
+                    request.getRequestDispatcher("RecordatorioForm.jsp").forward(request, response);
+                    break;
+
+                case "Actualizar": // Procesa la actualización de un recordatorio (2. Editar)
+                    idrec = Integer.parseInt(request.getParameter("idRecordatorio")); // idrec se usa aquí
+                    int idPacActualizar = Integer.parseInt(request.getParameter("idPaciente"));
+                    String fechaHoraStrActualizar = request.getParameter("txtFechaHora");
+                    String descActualizar = request.getParameter("txtDescripcion");
+                    String estadoActualizar = request.getParameter("txtEstado");
+                    
+                    int idProfCreadorActualizar = 0;
+                    if (request.getParameter("idProfesionalCreador") != null && !request.getParameter("idProfesionalCreador").isEmpty()) {
+                        idProfCreadorActualizar = Integer.parseInt(request.getParameter("idProfesionalCreador"));
+                    } else {
+                        // Si no viene del form, usar el ID del profesional logueado calculado
+                        idProfCreadorActualizar = idProfesionalCreador;
+                    }
+
+                    LocalDateTime fechaHoraActualizar = LocalDateTime.parse(fechaHoraStrActualizar); // Conversión sin try-catch
+
+                    Recordatorio recordatorioActualizado = new Recordatorio();
+                    recordatorioActualizado.setIdRecordatorio(idrec);
+                    recordatorioActualizado.setIdPaciente(idPacActualizar);
+                    recordatorioActualizado.setFechaRecordatorio(fechaHoraActualizar);
+                    recordatorioActualizado.setDescripcion(descActualizar);
+                    recordatorioActualizado.setEstado(estadoActualizar);
+                    recordatorioActualizado.setIdProfesionalCreador(idProfCreadorActualizar); // Usar el ID obtenido/calculado
+
+                    int resActualizar = recao.actualizar(recordatorioActualizado);
+
+                    if (resActualizar > 0) {
+                        request.getSession().setAttribute("mensaje", "Recordatorio actualizado correctamente.");
+                    } else {
+                        request.getSession().setAttribute("error", "No se pudo actualizar el recordatorio.");
+                    }
+                    response.sendRedirect("Controlador?menu=Notificaciones&accion=ListarPorPaciente&idPaciente=" + idPacActualizar);
+                    return;
+
+                case "Borrar": // Eliminar recordatorios (4. Eliminar)
+                    idrec = Integer.parseInt(request.getParameter("id")); // idrec se usa aquí
+
+                    // Obtener el idPaciente antes de borrar para poder redirigir correctamente
+                    Recordatorio recordatorioParaBorrar = recao.listarId(idrec);
+                    int idPacienteBorrar = (recordatorioParaBorrar != null) ? recordatorioParaBorrar.getIdPaciente() : 0;
+
+                    int resDelete = recao.delete(idrec);
+
+                    if (resDelete > 0) {
+                        request.getSession().setAttribute("mensaje", "Recordatorio eliminado correctamente.");
+                    } else {
+                        request.getSession().setAttribute("error", "No se pudo eliminar el recordatorio.");
+                    }
+
+                    if (idPacienteBorrar > 0) {
+                        response.sendRedirect("Controlador?menu=Notificaciones&accion=ListarPorPaciente&idPaciente=" + idPacienteBorrar);
+                    } else {
+                        response.sendRedirect("Controlador?menu=Notificaciones&accion=Listar");
+                    }
+                    return;
+
+                default:
+                    response.sendRedirect("error.jsp");
+                    break;
+            }
+            
+          }
+    
+     }
     public String asegurarClave(String textoClaro) {
         String claveSha = null;
 
